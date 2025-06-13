@@ -9,7 +9,6 @@
 /* Begin PBXFileReference section */
 		6CE79C780F19ABA024D5E339 /* NativeBridge.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = NativeBridge.xcconfig; sourceTree = "<group>"; };
 		DF30556E2DFBF58E00499937 /* NativeBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NativeBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		DF3059A12DFC255C00499937 /* NativeBridge.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = NativeBridge.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -51,11 +50,6 @@
 			children = (
 				DF30556E2DFBF58E00499937 /* NativeBridge.framework */,
 			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		DF3059A22DFC255C00499937 /* Products */ = {
-			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -120,12 +114,6 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF30556F2DFBF58E00499937 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = DF3059A22DFC255C00499937 /* Products */;
-					ProjectRef = DF3059A12DFC255C00499937 /* NativeBridge.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				DF30556D2DFBF58E00499937 /* NativeBridge */,
