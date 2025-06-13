@@ -1,2 +1,0 @@
-SWIFT_INCLUDE_PATHS = $(PROJECT_DIR)/Sources/libgodot $(PROJECT_DIR)/Sources/libgodot/godot_headers $(PROJECT_DIR)/Sources/SwiftGodot $(PROJECT_DIR)/Sources/SwiftGodotKit
-HEADER_SEARCH_PATHS = $(PROJECT_DIR)/Sources/libgodot $(PROJECT_DIR)/Sources/libgodot/godot_headers

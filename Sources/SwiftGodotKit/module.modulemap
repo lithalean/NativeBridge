@@ -1,1 +1,0 @@
-module SwiftGodotKit { umbrella "."; export *; }

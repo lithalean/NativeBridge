@@ -1,4 +1,0 @@
-module GDExtension [system] [extern_c] {
-	umbrella "godot_headers"
-	export *
-}
