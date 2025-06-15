@@ -101,6 +101,9 @@
 			);
 			mainGroup = DF5644ED2DFC36A5005C05CC;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DFCAB2972DFC43F400CCA0D8 /* XCRemoteSwiftPackageReference "SwiftGodotKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF5644F72DFC36A5005C05CC /* Products */;
 			projectDirPath = "";
@@ -351,6 +354,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DFCAB2972DFC43F400CCA0D8 /* XCRemoteSwiftPackageReference "SwiftGodotKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftGodotKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.3.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = DF5644EE2DFC36A5005C05CC /* Project object */;
 }
