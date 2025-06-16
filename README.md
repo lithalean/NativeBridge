@@ -211,13 +211,16 @@ NativeBridge/
 
 **Quick Context**: Bridge technology development connecting SwiftUI native experiences with GameEngine/EngineRuntime, featuring dual-layer architecture optimized for Darwin ARM64 with production export capabilities.
 
-**Key AI Collaboration Areas**:
+## 🤖 AI Collaboration
 - 🏗️ **Architecture**: Bridge pattern implementation, development/production separation
 - 🔧 **Integration**: Swift ↔ Godot communication, memory safety, performance optimization
 - ⚡ **Performance**: ARM64 optimization, latency reduction, memory management
 - 📋 **Planning**: Phase-based development, technology stack integration, export pipeline
 
-**AI Context Files**: See `.claude/context.md` for detailed project state, architecture decisions, and ongoing development context.
+## 🤖 AI Collaboration Files
+- **Context**: See `.claude/context.md` for project state and decisions
+- **Structure**: See `.claude/structure.md` for current file organization
+- **Key Discovery**: PCKManager.swift contains existing Godot bridge foundation
 
 ## Success Metrics & Performance Targets
 
