@@ -21,6 +21,8 @@ DECISION_LOG:
 [Phase 1] - Bridge pattern for Swift ↔ Godot communication
 [Planning] - Type-safe bindings with automatic marshaling
 [Planning] - <5ms latency target with <10MB memory overhead
+[June 16] - Modern WWDC 25 UI design with responsive layouts implemented
+[June 16] - Slide-out sidebar with glassmorphism and spring animations
 ```
 
 ## 🏗️ Technical Stack State
@@ -65,6 +67,7 @@ NativeBridge/
 - **Performance Focus**: <5ms latency with <10MB memory overhead targets
 - **Hot-Reload Workflow**: Live development with <5s debug cycle
 - **Native Integration**: SwiftUI development patterns with Godot performance
+- **WWDC 25 Design Standards**: Modern UI with glassmorphism, responsive layouts, spring animations
 
 ## 📊 Current Implementation Matrix
 ```
@@ -73,6 +76,7 @@ FEATURE_STATUS_MATRIX:
 
 Phase 1: Foundation Bridge (Current Sprint):
 ✅ xcframework Simulator Support    ✅ SwiftGodotKit Integration    ✅ Clean Project Structure
+✅ Modern WWDC 25 UI Design         ✅ Responsive Layout System     ✅ Slide-out Sidebar Navigation
 🚧 Basic Godot App Embedding       📋 SwiftUI Wrapper Components  📋 Basic Scene Loading
 📋 Swift → Godot Messaging         📋 Build System Configuration  📋 Communication Layer
 
@@ -105,6 +109,13 @@ PERFORMANCE_OPTIMIZATION:
 - Bridge latency optimization for <5ms target achievement
 - Memory management optimization for <10MB overhead limit
 - Hot-reload performance tuning for <5s debug cycle target
+
+COMPLETED_RECENT (June 16):
+✅ Modern WWDC 25 sidebar design with capsule styling and glassmorphism
+✅ Slide-out sidebar interaction with spring animations and material backgrounds
+✅ Landscape/portrait layout fixes for simulator consistency and proper centering
+✅ Floating toggle button with proper positioning to avoid icon overlap
+✅ Responsive design system with gradient styling and smooth transitions
 ```
 
 ## 🎯 Next Development Priorities
@@ -136,6 +147,11 @@ HIGH:
 MEDIUM:
 - Simulator performance slower than device | Profile bridge overhead | Developer experience issue
 
+RESOLVED_RECENT (June 16):
+✅ Simulator landscape UI not displaying properly | Fixed with GeometryReader and responsive layouts
+✅ Sidebar icon overlap issues | Resolved with proper spacing and centered content
+✅ Toggle button positioning conflicts | Fixed with floating button and material backgrounds
+
 ENHANCEMENT_REQUESTS:
 - Real-time bridge performance monitoring | Visual debugging interface for message passing
 - Automatic Swift wrapper generation | Code generation tools for Godot classes
@@ -154,9 +170,14 @@ INTEGRATION_TESTS:
 - Memory leak detection: Not implemented
 
 PLATFORM_TESTS:
-- iPhone Simulator: Primary development target
+- iPhone Simulator: Primary development target ✅
 - iPad Simulator: Basic compatibility needed
 - Mac Catalyst: Full tooling environment testing needed
+
+UI_TESTING:
+✅ Landscape/Portrait responsive layouts working correctly
+✅ Sidebar slide-out animations and interactions tested
+✅ WWDC 25 design standards implemented and verified
 ```
 
 ## 🚀 Release Planning Context
@@ -166,6 +187,8 @@ TARGET_VERSION: 0.2.0-alpha (Phase 1 Complete)
 RELEASE_TIMELINE: Q2 2025
 
 PHASE_1_COMPLETE_CHECKLIST:
+✅ Modern UI design with WWDC 25 standards implemented
+✅ Responsive layout system for all orientations
 □ Basic Godot app embedding functional
 □ SwiftUI wrapper components implemented
 □ Basic scene loading and testing complete
@@ -199,91 +222,34 @@ NativeBridge/
 - Development/Production split for concern separation
 - Type-safe bindings with automatic generation
 - Hot-reload friendly with state preservation
+
+// UI Design Patterns (June 16)
+- WWDC 25 design standards with glassmorphism
+- Responsive layouts using GeometryReader
+- Spring animations for smooth interactions
+- Material backgrounds and gradient accents
+- Floating UI elements with proper spacing
 ```
 
 ## 🔄 AI Collaboration History
 ```
-LAST_SESSION_FOCUS: README standardization and Claude.ai integration setup
-DECISIONS_MADE: Adopted Darwin ARM64 README template for bridge technology project
-CODE_GENERATED: Converted project documentation to standardized format
-NEXT_SESSION_PREP: Begin implementation of basic Godot app embedding
+LAST_SESSION_FOCUS: Modern UI design implementation with WWDC 25 standards
+DECISIONS_MADE: 
+- Implemented slide-out sidebar with capsule styling and material backgrounds
+- Fixed landscape/portrait layout issues with responsive design
+- Added spring animations and proper content centering
+- Resolved toggle button positioning and icon overlap issues
+
+CODE_GENERATED: 
+- Complete ContentView.swift rewrite with modern design system
+- ModernPhaseRow component with gradient styling and progress bars
+- Responsive layout logic with GeometryReader and proper centering
+- Material design implementation with glassmorphism effects
+
+NEXT_SESSION_PREP: Begin implementation of basic Godot app embedding with SwiftUI integration
 
 RECURRING_AI_ASSISTANCE_AREAS:
 - Bridge architecture design and Swift ↔ C++ interop optimization
 - SwiftGodotKit integration strategies and performance tuning
 - Memory management and type safety in cross-language communication
-- Development workflow optimization with hot-reload capabilities
-- Performance optimization for Darwin ARM64 bridge technology
-```
-
-## 🎨 Design Philosophy & Constraints
-```
-DESIGN_PRINCIPLES:
-- Bridge technology over monolithic integration
-- Development experience over deployment complexity
-- Type safety over runtime flexibility
-- Native performance over cross-platform compromise
-- Hot-reload workflow over traditional build cycles
-
-TECHNICAL_CONSTRAINTS:
-- Swift 5.9+ for modern language features and performance
-- iOS 18+ for latest SwiftUI capabilities
-- Darwin ARM64 primary with simulator support required
-- SwiftGodotKit dependency for bridge foundation
-- <5ms latency and <10MB memory overhead targets
-
-DEVELOPMENT_PRIORITIES:
-1. Bridge functionality and communication reliability
-2. Developer experience and hot-reload workflow
-3. Type safety and automatic code generation
-4. Performance optimization and memory management
-5. Production export and DarwinHost integration
-```
-
-## 🏗️ Project Relationship Context
-```
-NATIVEBRIDGE_ECOSYSTEM:
-NativeBridge (This Project):
-  - Purpose: Bridge technology development
-  - Focus: Integration tooling and developer experience
-  - Audience: Developers building Swift+Godot apps
-
-DarwinHost (Production):
-  - Purpose: Run shipped games using bridge exports
-  - Focus: User experience and performance
-  - Dependency: Stable bridge components from NativeBridge
-
-GameEngine (Dependency):
-  - Integration: xcframework with Jenova compatibility
-  - Feedback: Performance and stability testing
-  - Optimization: Darwin ARM64 specific enhancements
-
-EngineRuntime (Dependency):
-  - Integration: C++ scripting with hot-reload
-  - Bridge: Swift bindings for runtime features
-  - Development: Live development workflow support
-```
-
-## 📈 Success Metrics Tracking
-```
-TECHNICAL_PERFORMANCE_TARGETS:
-- Bridge Overhead: <5ms latency (Current: Not measured)
-- Memory Efficiency: <10MB overhead (Current: Not measured)
-- Build Time: <30s full rebuild (Current: ~45s)
-- Runtime Loading: <2s GameEngine init (Current: Not measured)
-
-DEVELOPER_EXPERIENCE_METRICS:
-- Setup Time: <10 minutes clone to running (Current: ~15 minutes)
-- Debug Cycle: <5s hot-reload (Current: Not implemented)
-- API Coverage: 90%+ Godot features (Current: 0%)
-- Documentation: 100% API coverage (Current: 20%)
-
-INTEGRATION_QUALITY_STATUS:
-- Stability: Zero crashes target (Current: Development phase)
-- Compatibility: All GameEngine versions (Current: Latest only)
-- Testing: 95%+ code coverage (Current: 0%)
-- Performance: 5% of native Godot (Current: Not benchmarked)
-```
-
----
-*Last Updated: June 15, 2025 | Claude.ai Session: Initial Setup*
+- Development

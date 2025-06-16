@@ -150,6 +150,7 @@ open NativeBridge.xcodeproj
 - **EngineRuntime** - C++ scripting runtime with hot-reload capabilities
 - **Bridge APIs** - Type-safe bindings with automatic marshaling
 - **Performance Monitoring** - Real-time profiling with memory management
+- **Modern UI Design** - WWDC 25 standards with glassmorphism and responsive layouts
 
 ### Key Components
 ```

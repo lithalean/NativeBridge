@@ -11,220 +11,69 @@ struct ContentView: View {
     @StateObject private var bridgeManager = BridgeManager()
     @State private var showDebugConsole = false
     @State private var selectedPhase = DevelopmentPhase.foundation
+    @State private var showSidebar = false
+    
+    // Add environment size classes for landscape detection
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
     
     var body: some View {
-        NavigationView {
-            // Development Phase Sidebar
-            List(DevelopmentPhase.allCases, id: \.self) { phase in
-                Button(action: {
-                    selectedPhase = phase
-                }) {
-                    PhaseRow(phase: phase, isActive: phase == selectedPhase)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-            .navigationTitle("Development")
-            
-            // Detail View
+        GeometryReader { geometry in
             ZStack {
-                // Dark development theme
-                Color.black.ignoresSafeArea()
+                // Main content area
+                detailView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                ScrollView {
-                    VStack(spacing: 25) {
-                        // Header Section
-                        VStack(spacing: 12) {
-                            HStack {
-                                Image(systemName: "hammer.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.orange)
-                                
-                                VStack(alignment: .leading) {
-                                    Text("NativeBridge")
-                                        .font(.largeTitle)
-                                        .bold()
-                                        .foregroundColor(.white)
-                                    Text("Development Platform")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                Spacer()
-                                
-                                // Live status indicator
-                                HStack {
-                                    Circle()
-                                        .fill(bridgeManager.isActive ? .green : .red)
-                                        .frame(width: 8, height: 8)
-                                    Text(bridgeManager.isActive ? "Active" : "Inactive")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            
-                            // Current phase banner
-                            HStack {
-                                Text("Phase \(selectedPhase.number): \(selectedPhase.title)")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Text("\(selectedPhase.progress)% Complete")
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(.blue.opacity(0.3))
-                                    .foregroundColor(.blue)
-                                    .clipShape(Capsule())
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                        
-                        // Bridge Status Grid
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 15) {
-                            BridgeStatusCard(
-                                title: "SwiftGodot",
-                                status: bridgeManager.swiftGodotStatus,
-                                icon: "swift",
-                                color: .orange
-                            )
-                            
-                            BridgeStatusCard(
-                                title: "GameEngine",
-                                status: bridgeManager.gameEngineStatus,
-                                icon: "engine.combustion.fill",
-                                color: .blue
-                            )
-                            
-                            BridgeStatusCard(
-                                title: "EngineRuntime",
-                                status: bridgeManager.runtimeStatus,
-                                icon: "gearshape.2.fill",
-                                color: .green
-                            )
-                            
-                            BridgeStatusCard(
-                                title: "Bridge Layer",
-                                status: bridgeManager.bridgeStatus,
-                                icon: "link",
-                                color: .purple
-                            )
-                        }
-                        
-                        // Development Tools Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            HStack {
-                                Text("Development Tools")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Button("Refresh All") {
-                                    bridgeManager.refreshStatus()
-                                }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
-                            }
-                            
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
-                                DevToolCard(
-                                    title: "Bridge Test",
-                                    icon: "play.circle.fill",
-                                    color: .green,
-                                    action: { bridgeManager.runBridgeTest() }
-                                )
-                                
-                                DevToolCard(
-                                    title: "Performance",
-                                    icon: "speedometer",
-                                    color: .orange,
-                                    action: { bridgeManager.runPerformanceTest() }
-                                )
-                                
-                                DevToolCard(
-                                    title: "Memory Check",
-                                    icon: "memorychip.fill",
-                                    color: .blue,
-                                    action: { bridgeManager.checkMemoryUsage() }
-                                )
-                                
-                                DevToolCard(
-                                    title: "Hot Reload",
-                                    icon: "arrow.clockwise.circle.fill",
-                                    color: .purple,
-                                    action: { bridgeManager.testHotReload() }
-                                )
-                                
-                                DevToolCard(
-                                    title: "Export Test",
-                                    icon: "square.and.arrow.up.circle.fill",
-                                    color: .indigo,
-                                    action: { bridgeManager.testExport() }
-                                )
-                                
-                                DevToolCard(
-                                    title: "Debug Log",
-                                    icon: "terminal.fill",
-                                    color: .gray,
-                                    action: { showDebugConsole.toggle() }
-                                )
+                // Floating sidebar overlay (both orientations)
+                if showSidebar {
+                    // Backdrop
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring()) {
+                                showSidebar = false
                             }
                         }
+                    
+                    // Sidebar
+                    HStack {
+                        modernSidebarView
+                            .frame(width: 320)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+                            .padding(.leading, 16)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .leading).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
                         
-                        // Phase-specific content
-                        selectedPhase.contentView(bridgeManager: bridgeManager)
-                        
-                        // Performance Metrics
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Real-time Metrics")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            HStack(spacing: 20) {
-                                MetricView(
-                                    title: "Bridge Latency",
-                                    value: String(format: "%.1f", bridgeManager.bridgeLatency) + "ms",
-                                    trend: bridgeManager.latencyTrend
-                                )
-                                
-                                MetricView(
-                                    title: "Memory Usage",
-                                    value: String(format: "%.1f", bridgeManager.memoryUsage) + "MB",
-                                    trend: bridgeManager.memoryTrend
-                                )
-                                
-                                MetricView(
-                                    title: "Frame Rate",
-                                    value: "\(Int(bridgeManager.frameRate)) FPS",
-                                    trend: bridgeManager.frameTrend
-                                )
-                                
-                                MetricView(
-                                    title: "Build Time",
-                                    value: String(format: "%.1f", bridgeManager.buildTime) + "s",
-                                    trend: bridgeManager.buildTrend
-                                )
-                            }
-                        }
-                        .padding()
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        Spacer()
                     }
-                    .padding()
                 }
-            }
-            .navigationTitle(selectedPhase.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("Clear Logs") { bridgeManager.clearLogs() }
-                        Button("Reset Metrics") { bridgeManager.resetMetrics() }
-                        Divider()
-                        Button("Export Report") { bridgeManager.exportReport() }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                
+                // Floating sidebar toggle button
+                VStack {
+                    HStack {
+                        Button(action: {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                showSidebar.toggle()
+                            }
+                        }) {
+                            Image(systemName: showSidebar ? "xmark.circle.fill" : "sidebar.left")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                        .padding(.leading, 16)
+                        .padding(.top, 8) // Much closer to top, out of the way
+                        
+                        Spacer()
                     }
+                    Spacer()
                 }
             }
         }
@@ -233,6 +82,297 @@ struct ContentView: View {
         }
         .onAppear {
             bridgeManager.startMonitoring()
+        }
+    }
+    
+    // Modern WWDC 25 style sidebar
+    private var modernSidebarView: some View {
+        VStack(spacing: 0) {
+            // Header with glassmorphism
+            VStack(spacing: 16) {
+                Spacer()
+                    .frame(height: 20) // Top spacing for close button
+                
+                HStack {
+                    Spacer()
+                    
+                    Image(systemName: "hammer.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(.orange.gradient)
+                    
+                    VStack(alignment: .center, spacing: 2) {
+                        Text("Development")
+                            .font(.title2)
+                            .bold()
+                        Text("Phase Control")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                
+                // Current phase indicator
+                HStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.blue.gradient)
+                        .frame(width: 4, height: 32)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Active Phase")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(selectedPhase.title)
+                            .font(.subheadline)
+                            .bold()
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(selectedPhase.progress)%")
+                        .font(.caption)
+                        .bold()
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.blue.opacity(0.2))
+                        .foregroundStyle(.blue)
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+            }
+            .background(.ultraThinMaterial)
+            
+            Divider()
+                .opacity(0.5)
+            
+            // Phase list
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(DevelopmentPhase.allCases, id: \.self) { phase in
+                        Button(action: {
+                            selectedPhase = phase
+                            withAnimation(.spring()) {
+                                showSidebar = false
+                            }
+                        }) {
+                            ModernPhaseRow(phase: phase, isActive: phase == selectedPhase)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 16)
+            }
+            
+            Spacer()
+        }
+        .frame(maxHeight: .infinity)
+    }
+    
+    // Extract detail view as computed property for reuse
+    private var detailView: some View {
+        ZStack {
+            // Dark development theme
+            Color.black.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 25) {
+                    // Header Section
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "hammer.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.orange)
+                            
+                            VStack(alignment: .leading) {
+                                Text("NativeBridge")
+                                    .font(.largeTitle)
+                                    .bold()
+                                    .foregroundColor(.white)
+                                Text("Development Platform")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            
+                            // Live status indicator
+                            HStack {
+                                Circle()
+                                    .fill(bridgeManager.isActive ? .green : .red)
+                                    .frame(width: 8, height: 8)
+                                Text(bridgeManager.isActive ? "Active" : "Inactive")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        // Current phase banner
+                        HStack {
+                            Text("Phase \(selectedPhase.number): \(selectedPhase.title)")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Spacer()
+                            Text("\(selectedPhase.progress)% Complete")
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(.blue.opacity(0.3))
+                                .foregroundColor(.blue)
+                                .clipShape(Capsule())
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    
+                    // Bridge Status Grid
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 15) {
+                        BridgeStatusCard(
+                            title: "SwiftGodot",
+                            status: bridgeManager.swiftGodotStatus,
+                            icon: "swift",
+                            color: .orange
+                        )
+                        
+                        BridgeStatusCard(
+                            title: "GameEngine",
+                            status: bridgeManager.gameEngineStatus,
+                            icon: "engine.combustion.fill",
+                            color: .blue
+                        )
+                        
+                        BridgeStatusCard(
+                            title: "EngineRuntime",
+                            status: bridgeManager.runtimeStatus,
+                            icon: "gearshape.2.fill",
+                            color: .green
+                        )
+                        
+                        BridgeStatusCard(
+                            title: "Bridge Layer",
+                            status: bridgeManager.bridgeStatus,
+                            icon: "link",
+                            color: .purple
+                        )
+                    }
+                    
+                    // Development Tools Section
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Text("Development Tools")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Spacer()
+                            Button("Refresh All") {
+                                bridgeManager.refreshStatus()
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                            DevToolCard(
+                                title: "Bridge Test",
+                                icon: "play.circle.fill",
+                                color: .green,
+                                action: { bridgeManager.runBridgeTest() }
+                            )
+                            
+                            DevToolCard(
+                                title: "Performance",
+                                icon: "speedometer",
+                                color: .orange,
+                                action: { bridgeManager.runPerformanceTest() }
+                            )
+                            
+                            DevToolCard(
+                                title: "Memory Check",
+                                icon: "memorychip.fill",
+                                color: .blue,
+                                action: { bridgeManager.checkMemoryUsage() }
+                            )
+                            
+                            DevToolCard(
+                                title: "Hot Reload",
+                                icon: "arrow.clockwise.circle.fill",
+                                color: .purple,
+                                action: { bridgeManager.testHotReload() }
+                            )
+                            
+                            DevToolCard(
+                                title: "Export Test",
+                                icon: "square.and.arrow.up.circle.fill",
+                                color: .indigo,
+                                action: { bridgeManager.testExport() }
+                            )
+                            
+                            DevToolCard(
+                                title: "Debug Log",
+                                icon: "terminal.fill",
+                                color: .gray,
+                                action: { showDebugConsole.toggle() }
+                            )
+                        }
+                    }
+                    
+                    // Phase-specific content
+                    selectedPhase.contentView(bridgeManager: bridgeManager)
+                    
+                    // Performance Metrics
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Real-time Metrics")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        HStack(spacing: 20) {
+                            MetricView(
+                                title: "Bridge Latency",
+                                value: String(format: "%.1f", bridgeManager.bridgeLatency) + "ms",
+                                trend: bridgeManager.latencyTrend
+                            )
+                            
+                            MetricView(
+                                title: "Memory Usage",
+                                value: String(format: "%.1f", bridgeManager.memoryUsage) + "MB",
+                                trend: bridgeManager.memoryTrend
+                            )
+                            
+                            MetricView(
+                                title: "Frame Rate",
+                                value: "\(Int(bridgeManager.frameRate)) FPS",
+                                trend: bridgeManager.frameTrend
+                            )
+                            
+                            MetricView(
+                                title: "Build Time",
+                                value: String(format: "%.1f", bridgeManager.buildTime) + "s",
+                                trend: bridgeManager.buildTrend
+                            )
+                        }
+                    }
+                    .padding()
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding()
+            }
+        }
+        .navigationTitle(selectedPhase.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button("Clear Logs") { bridgeManager.clearLogs() }
+                    Button("Reset Metrics") { bridgeManager.resetMetrics() }
+                    Divider()
+                    Button("Export Report") { bridgeManager.exportReport() }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
         }
     }
 }
@@ -284,33 +424,73 @@ enum DevelopmentPhase: String, CaseIterable {
 
 // MARK: - Component Views
 
-struct PhaseRow: View {
+struct ModernPhaseRow: View {
     let phase: DevelopmentPhase
     let isActive: Bool
     
     var body: some View {
-        HStack {
-            Text(phase.number)
-                .font(.caption)
-                .bold()
-                .frame(width: 20, height: 20)
-                .background(isActive ? .blue : .gray.opacity(0.3))
-                .foregroundColor(isActive ? .white : .secondary)
-                .clipShape(Circle())
+        HStack(spacing: 16) {
+            // Phase number with modern styling
+            ZStack {
+                Circle()
+                    .fill(isActive ? AnyShapeStyle(.blue.gradient) : AnyShapeStyle(.gray.opacity(0.2)))
+                    .frame(width: 32, height: 32)
+                
+                Text(phase.number)
+                    .font(.caption)
+                    .bold()
+                    .foregroundStyle(isActive ? .white : .secondary)
+            }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(phase.title)
                     .font(.subheadline)
                     .bold(isActive)
+                    .foregroundStyle(isActive ? .primary : .secondary)
                 
-                Text("\(phase.progress)% complete")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                // Progress bar
+                HStack {
+                    Text("\(phase.progress)% complete")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                }
+                
+                // Modern progress indicator
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 4)
+                        
+                        Capsule()
+                            .fill(isActive ? AnyShapeStyle(.blue.gradient) : AnyShapeStyle(.gray.opacity(0.4)))
+                            .frame(width: geometry.size.width * CGFloat(phase.progress) / 100, height: 4)
+                    }
+                }
+                .frame(height: 4)
             }
             
             Spacer()
+            
+            // Status indicator
+            if isActive {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.blue)
+                    .font(.subheadline)
+            }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(isActive ? .blue.opacity(0.1) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isActive ? .blue.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
     }
 }
 
