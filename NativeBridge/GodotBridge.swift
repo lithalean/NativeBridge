@@ -5,13 +5,6 @@
 //  Created by Tyler Allen on 6/17/25.
 //
 
-//
-//  GodotBridge.swift
-//  NativeBridge
-//
-//  Created by Tyler Allen on 6/17/25.
-//
-
 import Foundation
 
 // Direct C interface to your custom libgodot.xcframework

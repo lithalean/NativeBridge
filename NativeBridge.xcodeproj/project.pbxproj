@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DF8214942E0170290041D9D2 /* GodotKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8214932E0170230041D9D2 /* GodotKit.swift */; };
 		DF9A0ACA2E0171740014C156 /* libgodot.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DFCAB2952DFC3E8A00CCA0D8 /* libgodot.xcframework */; };
 		DF9A0ACD2E0171760014C156 /* MetalFX.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF9A0AC82E01716E0014C156 /* MetalFX.framework */; };
 /* End PBXBuildFile section */
@@ -27,7 +26,6 @@
 
 /* Begin PBXFileReference section */
 		DF5644F62DFC36A5005C05CC /* NativeBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DF8214932E0170230041D9D2 /* GodotKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GodotKit.swift; sourceTree = "<group>"; };
 		DF9A0AC82E01716E0014C156 /* MetalFX.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalFX.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/MetalFX.framework; sourceTree = DEVELOPER_DIR; };
 		DFCAB2952DFC3E8A00CCA0D8 /* libgodot.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:FP8G6F5Q64:Tyler Smallman"; lastKnownFileType = wrapper.xcframework; path = libgodot.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -61,7 +59,6 @@
 		DF5644ED2DFC36A5005C05CC = {
 			isa = PBXGroup;
 			children = (
-				DF8214932E0170230041D9D2 /* GodotKit.swift */,
 				DF5644F82DFC36A5005C05CC /* NativeBridge */,
 				DF5644F72DFC36A5005C05CC /* Products */,
 				DFCAB2952DFC3E8A00CCA0D8 /* libgodot.xcframework */,
@@ -164,7 +161,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DF8214942E0170290041D9D2 /* GodotKit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
