@@ -259,7 +259,7 @@ struct ContentView: View {
                         )
                     }
                     
-                    // Development Tools Section
+                    // Development Tools Section - UPDATED
                     VStack(alignment: .leading, spacing: 15) {
                         HStack {
                             Text("Development Tools")
@@ -275,23 +275,31 @@ struct ContentView: View {
                         
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
                             DevToolCard(
-                                title: "Bridge Test",
+                                title: "Connect Engine",
                                 icon: "play.circle.fill",
                                 color: .green,
-                                action: { bridgeManager.runBridgeTest() }
+                                action: {
+                                    Task {
+                                        await bridgeManager.connectGameEngine()
+                                    }
+                                }
                             )
                             
                             DevToolCard(
-                                title: "Performance",
-                                icon: "speedometer",
-                                color: .orange,
-                                action: { bridgeManager.runPerformanceTest() }
+                                title: "Test Bridge",
+                                icon: "link.circle.fill",
+                                color: .blue,
+                                action: {
+                                    Task {
+                                        await bridgeManager.testGameEngineBridge()
+                                    }
+                                }
                             )
                             
                             DevToolCard(
                                 title: "Memory Check",
                                 icon: "memorychip.fill",
-                                color: .blue,
+                                color: .orange,
                                 action: { bridgeManager.checkMemoryUsage() }
                             )
                             
@@ -303,10 +311,10 @@ struct ContentView: View {
                             )
                             
                             DevToolCard(
-                                title: "Export Test",
-                                icon: "square.and.arrow.up.circle.fill",
-                                color: .indigo,
-                                action: { bridgeManager.testExport() }
+                                title: "Disconnect",
+                                icon: "stop.circle.fill",
+                                color: .red,
+                                action: { bridgeManager.disconnectGameEngine() }
                             )
                             
                             DevToolCard(
@@ -774,141 +782,6 @@ struct DebugConsoleView: View {
 struct TaskItem {
     let title: String
     let completed: Bool
-}
-
-enum BridgeComponentStatus {
-    case connected
-    case connecting
-    case disconnected
-    case error
-    
-    var description: String {
-        switch self {
-        case .connected: return "Connected and operational"
-        case .connecting: return "Establishing connection..."
-        case .disconnected: return "Not connected"
-        case .error: return "Connection error"
-        }
-    }
-}
-
-enum MetricTrend {
-    case up, down, stable
-}
-
-// MARK: - Bridge Manager
-
-@MainActor
-class BridgeManager: ObservableObject {
-    @Published var isActive = false
-    @Published var swiftGodotStatus: BridgeComponentStatus = .disconnected
-    @Published var gameEngineStatus: BridgeComponentStatus = .disconnected
-    @Published var runtimeStatus: BridgeComponentStatus = .disconnected
-    @Published var bridgeStatus: BridgeComponentStatus = .disconnected
-    
-    @Published var bridgeLatency: Double = 0.0
-    @Published var memoryUsage: Double = 0.0
-    @Published var frameRate: Double = 0.0
-    @Published var buildTime: Double = 0.0
-    
-    @Published var latencyTrend: MetricTrend = .stable
-    @Published var memoryTrend: MetricTrend = .stable
-    @Published var frameTrend: MetricTrend = .stable
-    @Published var buildTrend: MetricTrend = .stable
-    
-    @Published var foundationLogs: [String] = []
-    @Published var allLogs: [String] = []
-    
-    func startMonitoring() {
-        isActive = true
-        // Simulate some initial status
-        swiftGodotStatus = .connecting
-        
-        // Simulate real-time metrics
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            Task { @MainActor in
-                self.updateMetrics()
-            }
-        }
-        
-        addLog("NativeBridge monitoring started")
-    }
-    
-    func refreshStatus() {
-        addLog("Refreshing all component status...")
-        // Simulate status checks
-    }
-    
-    func runBridgeTest() {
-        addLog("Running bridge connection test...")
-        foundationLogs.append("Bridge test initiated")
-    }
-    
-    func runPerformanceTest() {
-        addLog("Starting performance benchmark...")
-    }
-    
-    func checkMemoryUsage() {
-        addLog("Analyzing memory allocation patterns...")
-    }
-    
-    func testHotReload() {
-        addLog("Testing hot-reload capabilities...")
-    }
-    
-    func testExport() {
-        addLog("Testing framework export...")
-    }
-    
-    func clearLogs() {
-        allLogs.removeAll()
-        foundationLogs.removeAll()
-    }
-    
-    func resetMetrics() {
-        bridgeLatency = 0.0
-        memoryUsage = 0.0
-        frameRate = 0.0
-        buildTime = 0.0
-        addLog("Metrics reset")
-    }
-    
-    func exportReport() {
-        addLog("Exporting development report...")
-    }
-    
-    private func updateMetrics() {
-        // Simulate realistic metrics
-        bridgeLatency = Double.random(in: 1.0...5.0)
-        memoryUsage = Double.random(in: 45.0...55.0)
-        frameRate = Double.random(in: 58.0...62.0)
-        buildTime = Double.random(in: 15.0...25.0)
-        
-        // Random trend updates
-        if Int.random(in: 0...10) == 0 {
-            latencyTrend = [.up, .down, .stable].randomElement() ?? .stable
-            memoryTrend = [.up, .down, .stable].randomElement() ?? .stable
-            frameTrend = [.up, .down, .stable].randomElement() ?? .stable
-            buildTrend = [.up, .down, .stable].randomElement() ?? .stable
-        }
-    }
-    
-    private func addLog(_ message: String) {
-        let timestamp = DateFormatter.timeFormatter.string(from: Date())
-        let logEntry = "[\(timestamp)] \(message)"
-        allLogs.append(logEntry)
-        if allLogs.count > 100 {
-            allLogs.removeFirst()
-        }
-    }
-}
-
-extension DateFormatter {
-    static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        return formatter
-    }()
 }
 
 #Preview {
