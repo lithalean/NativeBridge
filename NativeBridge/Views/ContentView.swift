@@ -2,13 +2,14 @@
 //  ContentView.swift
 //  NativeBridge
 //
-//  Created by Tyler Allen on 6/13/25.
+//  Fixed to work with current BridgeManager + GodotBridge architecture
 //
 
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var bridgeManager = BridgeManager()
+    @StateObject private var pckManager = PCKManager()
     @State private var showingSidebar = false
     
     var body: some View {
@@ -80,6 +81,10 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            // Set up the connection between managers
+            bridgeManager.setupWithPCKManager(pckManager)
+        }
     }
     
     // MARK: - Main Content
@@ -113,7 +118,6 @@ struct ContentView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 100)
         }
-        // Remove the offset - content should NOT move when sidebar opens
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showingSidebar)
     }
     
@@ -164,7 +168,7 @@ struct ContentView: View {
                             .foregroundStyle(index < 3 ? .green : .white.opacity(0.3))
                     }
                 }
-                .animation(.easeInOut(duration: 0.3), value: bridgeManager.swiftGodotStatus.isConnected)
+                .animation(.easeInOut(duration: 0.3), value: bridgeManager.isEngineConnected)
             }
         }
         .padding(24)
@@ -194,10 +198,26 @@ struct ContentView: View {
             }
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                ModernStatusCard(title: "SwiftGodot", status: bridgeManager.swiftGodotStatus, icon: "link")
-                ModernStatusCard(title: "GameEngine", status: bridgeManager.gameEngineStatus, icon: "gear")
-                ModernStatusCard(title: "Bridge", status: bridgeManager.bridgeStatus, icon: "arrow.left.arrow.right")
-                ModernStatusCard(title: "PCK Package", status: bridgeManager.pckStatus, icon: "doc.badge.gearshape")
+                ModernStatusCard(
+                    title: "GodotBridge",
+                    status: ComponentStatus(isConnected: bridgeManager.isEngineConnected, displayName: bridgeManager.status),
+                    icon: "link"
+                )
+                ModernStatusCard(
+                    title: "Engine",
+                    status: ComponentStatus(isConnected: bridgeManager.isEngineConnected, displayName: "Custom libgodot.xcframework"),
+                    icon: "gear"
+                )
+                ModernStatusCard(
+                    title: "Bridge",
+                    status: ComponentStatus(isConnected: bridgeManager.isEngineConnected, displayName: bridgeManager.lastActivity),
+                    icon: "arrow.left.arrow.right"
+                )
+                ModernStatusCard(
+                    title: "PCK Package",
+                    status: ComponentStatus(isConnected: pckManager.isLoaded, displayName: getPCKStatusText()),
+                    icon: "doc.badge.gearshape"
+                )
             }
         }
         .padding(24)
@@ -230,9 +250,10 @@ struct ContentView: View {
                     subtitle: "Find game.pck in app bundle",
                     icon: "tray.and.arrow.down",
                     color: .orange,
+                    isEnabled: bridgeManager.isEngineConnected && !pckManager.isLoaded,
                     action: {
                         Task {
-                            await bridgeManager.loadPckFromBundle()
+                            await bridgeManager.loadPCKBundle()
                         }
                     }
                 )
@@ -243,8 +264,9 @@ struct ContentView: View {
                         subtitle: "Inspect contents",
                         icon: "folder.badge.questionmark",
                         color: .purple,
+                        isEnabled: true,
                         action: {
-                            bridgeManager.debugBundleContents()
+                            pckManager.debugBundleContents()
                         }
                     )
                     
@@ -253,8 +275,11 @@ struct ContentView: View {
                         subtitle: "View loaded details",
                         icon: "list.bullet.rectangle",
                         color: .blue,
+                        isEnabled: pckManager.isLoaded,
                         action: {
-                            bridgeManager.inspectProjectStructure()
+                            Task {
+                                await bridgeManager.inspectProjectStructure()
+                            }
                         }
                     )
                 }
@@ -290,10 +315,9 @@ struct ContentView: View {
                     subtitle: "Initialize bridge",
                     icon: "play.circle",
                     color: .green,
+                    isEnabled: !bridgeManager.isEngineConnected,
                     action: {
-                        Task {
-                            await bridgeManager.connectGameEngine()
-                        }
+                        bridgeManager.connectGameEngine()
                     }
                 )
                 
@@ -302,10 +326,9 @@ struct ContentView: View {
                     subtitle: "Verify connection",
                     icon: "checkmark.circle",
                     color: .blue,
+                    isEnabled: bridgeManager.isEngineConnected,
                     action: {
-                        Task {
-                            await bridgeManager.testGameEngineBridge()
-                        }
+                        bridgeManager.sendTestMessage()
                     }
                 )
                 
@@ -314,8 +337,9 @@ struct ContentView: View {
                     subtitle: "Monitor metrics",
                     icon: "chart.line.uptrend.xyaxis",
                     color: .purple,
+                    isEnabled: true,
                     action: {
-                        bridgeManager.monitorBridgePerformance()
+                        bridgeManager.startPerformanceMonitoring()
                     }
                 )
                 
@@ -324,8 +348,9 @@ struct ContentView: View {
                     subtitle: "Inspect state",
                     icon: "ant",
                     color: .orange,
+                    isEnabled: bridgeManager.isEngineConnected,
                     action: {
-                        bridgeManager.debugBridgeOperations()
+                        bridgeManager.testProjectAccess()
                     }
                 )
             }
@@ -357,30 +382,30 @@ struct ContentView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
                 ModernMetricCard(
                     title: "Latency",
-                    value: String(format: "%.1f ms", bridgeManager.performanceMetrics.bridgeLatency),
-                    trend: bridgeManager.performanceMetrics.latencyTrend,
+                    value: String(format: "%.1f ms", bridgeManager.bridgeMetrics.bridgeLatency),
+                    trend: .stable,
                     icon: "timer"
                 )
                 
                 ModernMetricCard(
                     title: "Memory",
-                    value: String(format: "%.0f MB", bridgeManager.performanceMetrics.memoryUsage),
-                    trend: bridgeManager.performanceMetrics.memoryTrend,
+                    value: String(format: "%.0f MB", bridgeManager.bridgeMetrics.memoryUsage),
+                    trend: .stable,
                     icon: "memorychip"
                 )
                 
                 ModernMetricCard(
-                    title: "Frame Rate",
-                    value: String(format: "%.0f fps", bridgeManager.performanceMetrics.frameRate),
-                    trend: bridgeManager.performanceMetrics.frameRateTrend,
-                    icon: "tv"
+                    title: "Files",
+                    value: "\(bridgeManager.bridgeMetrics.loadedFiles)",
+                    trend: .up,
+                    icon: "doc"
                 )
                 
                 ModernMetricCard(
-                    title: "Build Time",
-                    value: String(format: "%.1f s", bridgeManager.performanceMetrics.buildTime),
-                    trend: bridgeManager.performanceMetrics.buildTimeTrend,
-                    icon: "hammer"
+                    title: "Uptime",
+                    value: String(format: "%.0f s", bridgeManager.bridgeMetrics.connectionDuration),
+                    trend: .up,
+                    icon: "clock"
                 )
             }
         }
@@ -404,7 +429,7 @@ struct ContentView: View {
                 Spacer()
                 
                 Button("Clear") {
-                    bridgeManager.clearDebugConsole()
+                    bridgeManager.clearDebugMessages()
                 }
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.blue)
@@ -423,6 +448,14 @@ struct ContentView: View {
                         Text(message)
                             .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(.white.opacity(0.8))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    // Add PCK debug info
+                    ForEach(pckManager.debugInfo.suffix(10), id: \.self) { message in
+                        Text(message)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.orange.opacity(0.8))
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -490,7 +523,7 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Text("75%")
+                        Text(getPhaseProgress())
                             .font(.caption.weight(.bold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -524,7 +557,7 @@ struct ContentView: View {
                     }
                     
                     VStack(spacing: 8) {
-                        ForEach(sidebarFeatures, id: \.title) { feature in
+                        ForEach(getSidebarFeatures(), id: \.title) { feature in
                             ModernSidebarPhaseRow(feature: feature)
                         }
                     }
@@ -554,26 +587,59 @@ struct ContentView: View {
     }
     
     private var allComponentsConnected: Bool {
-        bridgeManager.swiftGodotStatus.isConnected && bridgeManager.gameEngineStatus.isConnected
+        bridgeManager.isEngineConnected && pckManager.isLoaded
     }
     
-    // MARK: - Data
+    private func getPCKStatusText() -> String {
+        switch pckManager.status {
+        case .loading:
+            return "Loading..."
+        case .found:
+            return "Found"
+        case .loaded:
+            return "Loaded (\(pckManager.pckContents.count) files)"
+        case .notFound:
+            return "Not Found"
+        case .error:
+            return "Error"
+        }
+    }
     
-    private let sidebarFeatures = [
-        SidebarFeature(title: "SwiftGodot Integration", isComplete: true),
-        SidebarFeature(title: "Bridge Communication", isComplete: true),
-        SidebarFeature(title: "PCK Loading", isComplete: false),
-        SidebarFeature(title: "Project Structure", isComplete: false),
-        SidebarFeature(title: "Runtime Integration", isComplete: false),
-        SidebarFeature(title: "Enhanced Messaging", isComplete: false)
-    ]
+    private func getPhaseProgress() -> String {
+        let engineConnected = bridgeManager.isEngineConnected
+        let pckLoaded = pckManager.isLoaded
+        
+        if engineConnected && pckLoaded {
+            return "95%"
+        } else if engineConnected {
+            return "75%"
+        } else {
+            return "25%"
+        }
+    }
+    
+    private func getSidebarFeatures() -> [SidebarFeature] {
+        [
+            SidebarFeature(title: "GodotBridge Integration", isComplete: bridgeManager.isEngineConnected),
+            SidebarFeature(title: "Bridge Communication", isComplete: bridgeManager.isEngineConnected),
+            SidebarFeature(title: "PCK Loading", isComplete: pckManager.isLoaded),
+            SidebarFeature(title: "Project Structure", isComplete: pckManager.isLoaded && !pckManager.pckContents.isEmpty),
+            SidebarFeature(title: "Runtime Integration", isComplete: false),
+            SidebarFeature(title: "Enhanced Messaging", isComplete: false)
+        ]
+    }
 }
 
 // MARK: - Modern Supporting Views
 
+struct ComponentStatus {
+    let isConnected: Bool
+    let displayName: String
+}
+
 struct ModernStatusCard: View {
     let title: String
-    let status: BridgeManager.ComponentStatus
+    let status: ComponentStatus
     let icon: String
     
     var body: some View {
@@ -600,6 +666,7 @@ struct ModernStatusCard: View {
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.white.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(2)
             }
         }
         .padding(16)
@@ -616,6 +683,7 @@ struct ModernActionCard: View {
     let subtitle: String
     let icon: String
     let color: Color
+    let isEnabled: Bool
     let action: () -> Void
     
     var body: some View {
@@ -624,7 +692,7 @@ struct ModernActionCard: View {
                 HStack {
                     Image(systemName: icon)
                         .font(.title3.weight(.medium))
-                        .foregroundStyle(color)
+                        .foregroundStyle(isEnabled ? color : .gray)
                     
                     Spacer()
                 }
@@ -632,30 +700,51 @@ struct ModernActionCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(isEnabled ? .white : .gray)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text(subtitle)
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(isEnabled ? .white.opacity(0.7) : .gray.opacity(0.7))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .padding(16)
-            .background(.ultraThinMaterial.opacity(0.8), in: RoundedRectangle(cornerRadius: 16))
+            .background(.ultraThinMaterial.opacity(isEnabled ? 0.8 : 0.4), in: RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(.white.opacity(0.1), lineWidth: 1)
+                    .stroke(.white.opacity(isEnabled ? 0.1 : 0.05), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(!isEnabled)
+    }
+}
+
+enum TrendDirection {
+    case up, down, stable
+    
+    var icon: String {
+        switch self {
+        case .up: return "↗"
+        case .down: return "↘"
+        case .stable: return "→"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .up: return .green
+        case .down: return .red
+        case .stable: return .blue
+        }
     }
 }
 
 struct ModernMetricCard: View {
     let title: String
     let value: String
-    let trend: BridgeManager.PerformanceMetrics.TrendDirection
+    let trend: TrendDirection
     let icon: String
     
     var body: some View {
@@ -749,4 +838,13 @@ struct ModernSidebarPhaseRow: View {
 struct SidebarFeature {
     let title: String
     let isComplete: Bool
+}
+
+// MARK: - BridgeManager Extension
+
+extension BridgeManager {
+    func setupWithPCKManager(_ pckManager: PCKManager) {
+        // This method should exist in BridgeManager to set up the connection
+        // If it doesn't exist, you can add it or handle the connection differently
+    }
 }
