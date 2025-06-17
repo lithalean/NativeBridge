@@ -5,13 +5,6 @@
 //  Created by Tyler Allen on 6/13/25.
 //
 
-//
-//  PCKManager.swift
-//  DarwinHost
-//
-//  Created by Tyler Allen on 6/11/25.
-//
-
 import Foundation
 
 @MainActor

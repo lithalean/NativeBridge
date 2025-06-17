@@ -5,192 +5,346 @@
 //  Created by Tyler Allen on 6/16/25.
 //
 
-
-//
-//  BridgeManager.swift
-//  NativeBridge
-//
-//  Created by Tyler Allen on 6/13/25.
-//
-
 import Foundation
 import SwiftUI
 
-// MARK: - Bridge Manager
-
 @MainActor
 class BridgeManager: ObservableObject {
-    // MARK: - GameEngine Integration
-    @Published var godotEngine = GodotEngineManager()
+    // Bridge Component Status
+    @Published var swiftGodotStatus: ComponentStatus = .disconnected
+    @Published var gameEngineStatus: ComponentStatus = .disconnected
+    @Published var bridgeStatus: ComponentStatus = .disconnected
+    @Published var runtimeStatus: ComponentStatus = .disconnected
+    @Published var pckStatus: ComponentStatus = .disconnected
     
-    @Published var isActive = false
-    @Published var swiftGodotStatus: BridgeComponentStatus = .disconnected
-    @Published var gameEngineStatus: BridgeComponentStatus = .disconnected
-    @Published var runtimeStatus: BridgeComponentStatus = .disconnected
-    @Published var bridgeStatus: BridgeComponentStatus = .disconnected
+    // Performance Metrics
+    @Published var performanceMetrics = PerformanceMetrics()
     
-    @Published var bridgeLatency: Double = 0.0
-    @Published var memoryUsage: Double = 0.0
-    @Published var frameRate: Double = 0.0
-    @Published var buildTime: Double = 0.0
+    // Debug Console
+    @Published var debugMessages: [String] = []
+    @Published var isDebugExpanded = false
     
-    @Published var latencyTrend: MetricTrend = .stable
-    @Published var memoryTrend: MetricTrend = .stable
-    @Published var frameTrend: MetricTrend = .stable
-    @Published var buildTrend: MetricTrend = .stable
+    // Godot Engine Manager
+    private let godotEngineManager = GodotEngineManager()
     
-    @Published var foundationLogs: [String] = []
-    @Published var allLogs: [String] = []
-    
-    func startMonitoring() {
-        isActive = true
-        // Simulate some initial status
-        swiftGodotStatus = .connecting
+    struct ComponentStatus {
+        let isConnected: Bool
+        let displayName: String
+        let lastUpdated: Date
         
-        // Simulate real-time metrics
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            Task { @MainActor in
-                self.updateMetrics()
+        static let disconnected = ComponentStatus(isConnected: false, displayName: "Disconnected", lastUpdated: Date())
+        static let connected = ComponentStatus(isConnected: true, displayName: "Connected", lastUpdated: Date())
+        static let error = ComponentStatus(isConnected: false, displayName: "Error", lastUpdated: Date())
+        static let loading = ComponentStatus(isConnected: false, displayName: "Loading", lastUpdated: Date())
+        static let loaded = ComponentStatus(isConnected: true, displayName: "Loaded", lastUpdated: Date())
+    }
+    
+    struct PerformanceMetrics {
+        var bridgeLatency: Double = 0.0
+        var memoryUsage: Double = 0.0
+        var frameRate: Double = 60.0
+        var buildTime: Double = 0.0
+        
+        // Trend indicators
+        var latencyTrend: TrendDirection = .stable
+        var memoryTrend: TrendDirection = .stable
+        var frameRateTrend: TrendDirection = .stable
+        var buildTimeTrend: TrendDirection = .stable
+        
+        enum TrendDirection {
+            case improving, stable, degrading
+            
+            var icon: String {
+                switch self {
+                case .improving: return "↗️"
+                case .stable: return "→"
+                case .degrading: return "↘️"
+                }
+            }
+            
+            var color: Color {
+                switch self {
+                case .improving: return .green
+                case .stable: return .blue
+                case .degrading: return .red
+                }
             }
         }
+    }
+    
+    init() {
+        addDebugMessage("🚀 BridgeManager initialized - Phase 2 PCK Loading Ready")
+        startPerformanceMonitoring()
         
-        addLog("NativeBridge monitoring started")
+        // Monitor GodotEngineManager status changes
+        setupGodotEngineObservation()
     }
     
-    func refreshStatus() {
-        addLog("Refreshing all component status...")
-        // Simulate status checks
-    }
+    // MARK: - Godot Engine Observation
     
-    func runBridgeTest() {
-        addLog("Running bridge connection test...")
-        foundationLogs.append("Bridge test initiated")
-    }
-    
-    func runPerformanceTest() {
-        addLog("Starting performance benchmark...")
-    }
-    
-    func checkMemoryUsage() {
-        addLog("Analyzing memory allocation patterns...")
-    }
-    
-    func testHotReload() {
-        addLog("Testing hot-reload capabilities...")
-    }
-    
-    func testExport() {
-        addLog("Testing framework export...")
-    }
-    
-    func clearLogs() {
-        allLogs.removeAll()
-        foundationLogs.removeAll()
-    }
-    
-    func resetMetrics() {
-        bridgeLatency = 0.0
-        memoryUsage = 0.0
-        frameRate = 0.0
-        buildTime = 0.0
-        addLog("Metrics reset")
-    }
-    
-    func exportReport() {
-        addLog("Exporting development report...")
-    }
-    
-    private func updateMetrics() {
-        // Simulate realistic metrics
-        bridgeLatency = Double.random(in: 1.0...5.0)
-        memoryUsage = Double.random(in: 45.0...55.0)
-        frameRate = Double.random(in: 58.0...62.0)
-        buildTime = Double.random(in: 15.0...25.0)
+    private func setupGodotEngineObservation() {
+        // Observe engine status changes
+        godotEngineManager.$engineStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                self?.updateEngineStatus(status)
+            }
+            .store(in: &cancellables)
         
-        // Random trend updates
-        if Int.random(in: 0...10) == 0 {
-            latencyTrend = [.up, .down, .stable].randomElement() ?? .stable
-            memoryTrend = [.up, .down, .stable].randomElement() ?? .stable
-            frameTrend = [.up, .down, .stable].randomElement() ?? .stable
-            buildTrend = [.up, .down, .stable].randomElement() ?? .stable
-        }
+        // Observe debug messages
+        godotEngineManager.$debugMessages
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] messages in
+                // Add new messages to our debug console
+                if let lastMessage = messages.last {
+                    self?.addDebugMessage("🎮 " + lastMessage)
+                }
+            }
+            .store(in: &cancellables)
     }
     
-    private func addLog(_ message: String) {
-        let timestamp = DateFormatter.timeFormatter.string(from: Date())
-        let logEntry = "[\(timestamp)] \(message)"
-        allLogs.append(logEntry)
-        if allLogs.count > 100 {
-            allLogs.removeFirst()
-        }
-    }
+    private var cancellables = Set<AnyCancellable>()
     
-    // MARK: - GameEngine Integration Methods
-    func connectGameEngine() async {
-        addLog("🔌 Connecting to GameEngine...")
-        gameEngineStatus = .connecting
-        
-        await godotEngine.initializeEngine()
-        
-        if godotEngine.isEngineInitialized {
+    private func updateEngineStatus(_ status: GodotEngineManager.EngineStatus) {
+        switch status {
+        case .disconnected:
+            gameEngineStatus = .disconnected
+            swiftGodotStatus = .disconnected
+            bridgeStatus = .disconnected
+            runtimeStatus = .disconnected  // Runtime not implemented yet
+            pckStatus = .disconnected
+            
+        case .initializing:
+            gameEngineStatus = .loading
+            swiftGodotStatus = .loading
+            // Runtime stays disconnected in Phase 2
+            
+        case .connected:
             gameEngineStatus = .connected
             swiftGodotStatus = .connected
             bridgeStatus = .connected
-            addLog("✅ GameEngine connected successfully!")
-        } else {
+            // Runtime stays disconnected - not implemented in Phase 2
+            runtimeStatus = ComponentStatus(isConnected: false, displayName: "Phase 3", lastUpdated: Date())
+            pckStatus = .disconnected
+            
+        case .loadingPck:
+            pckStatus = .loading
+            
+        case .pckLoaded:
+            pckStatus = .loaded
+            
+        case .error(let message):
             gameEngineStatus = .error
-            addLog("❌ Failed to connect GameEngine")
+            addDebugMessage("❌ Engine Error: \(message)")
+        }
+    }
+    
+    // MARK: - Bridge Operations
+    
+    func connectGameEngine() async {
+        addDebugMessage("🔄 Initiating GameEngine connection...")
+        
+        // Update status to show connection attempt
+        swiftGodotStatus = ComponentStatus(isConnected: false, displayName: "Connecting...", lastUpdated: Date())
+        
+        // Initialize the Godot Engine
+        await godotEngineManager.initializeEngine()
+        
+        // Update performance metrics
+        updatePerformanceMetrics()
+        
+        addDebugMessage("✅ GameEngine connection sequence complete")
+    }
+    
+    func loadPckFile(at path: String) async {
+        addDebugMessage("📦 Loading PCK file: \(path)")
+        
+        // Update PCK status
+        pckStatus = .loading
+        
+        // Load the PCK file through GodotEngineManager
+        await godotEngineManager.loadPckFile(at: path)
+        
+        // Update performance metrics after loading
+        updatePerformanceMetrics()
+        
+        if godotEngineManager.engineStatus == .pckLoaded {
+            addDebugMessage("✅ PCK file loaded successfully")
+            addDebugMessage("🔍 Project structure available in debug console")
+        } else {
+            addDebugMessage("❌ PCK file loading failed")
         }
     }
     
     func testGameEngineBridge() async {
-        addLog("🧪 Testing GameEngine bridge communication...")
+        addDebugMessage("🧪 Testing GameEngine bridge communication...")
         
-        let success = await godotEngine.sendTestMessage()
+        let startTime = Date()
+        let success = await godotEngineManager.sendTestMessage()
+        let latency = Date().timeIntervalSince(startTime) * 1000 // Convert to milliseconds
+        
+        // Update bridge latency metric
+        performanceMetrics.bridgeLatency = latency
         
         if success {
-            bridgeLatency = 2.5
-            addLog("✅ Bridge test successful (2.5ms latency)")
+            addDebugMessage("✅ Bridge test successful - Latency: \(String(format: "%.2f", latency))ms")
+            
+            // If we have a loaded PCK, show some project info
+            if let structure = godotEngineManager.projectStructure {
+                addDebugMessage("📋 Loaded project: \(structure.totalFiles) files")
+                if let mainScene = structure.mainScene {
+                    addDebugMessage("🎬 Main scene: \(mainScene)")
+                }
+            }
         } else {
-            addLog("❌ Bridge test failed")
+            addDebugMessage("❌ Bridge test failed")
+        }
+        
+        updatePerformanceMetrics()
+    }
+    
+    func inspectProjectStructure() {
+        guard let structure = godotEngineManager.projectStructure else {
+            addDebugMessage("❌ No project loaded - load a PCK file first")
+            return
+        }
+        
+        addDebugMessage("🔍 Displaying current project structure:")
+        addDebugMessage(structure.debugDescription)
+    }
+    
+    func loadPckFromBundle() async {
+        addDebugMessage("🔍 Searching for PCK file in app bundle...")
+        
+        // Use your existing PCKManager to find the file
+        await godotEngineManager.loadPckFromBundle()
+        
+        // Update performance metrics after loading
+        updatePerformanceMetrics()
+        
+        if godotEngineManager.engineStatus == .pckLoaded {
+            addDebugMessage("✅ PCK file loaded from bundle successfully")
+            addDebugMessage("🔍 Project structure available - use 'Inspect Structure'")
+        } else {
+            addDebugMessage("❌ PCK file loading from bundle failed")
         }
     }
     
-    func disconnectGameEngine() {
-        godotEngine.shutdown()
-        gameEngineStatus = .disconnected
-        swiftGodotStatus = .disconnected
-        bridgeStatus = .disconnected
-        addLog("🔌 GameEngine disconnected")
+    func monitorBridgePerformance() {
+        addDebugMessage("📊 Bridge performance monitoring enabled")
+        addDebugMessage("📈 Current metrics:")
+        addDebugMessage("   • Bridge Latency: \(String(format: "%.2f", performanceMetrics.bridgeLatency))ms \(performanceMetrics.latencyTrend.icon)")
+        addDebugMessage("   • Memory Usage: \(String(format: "%.1f", performanceMetrics.memoryUsage))MB \(performanceMetrics.memoryTrend.icon)")
+        addDebugMessage("   • Frame Rate: \(String(format: "%.1f", performanceMetrics.frameRate))fps \(performanceMetrics.frameRateTrend.icon)")
+        addDebugMessage("   • Build Time: \(String(format: "%.1f", performanceMetrics.buildTime))s \(performanceMetrics.buildTimeTrend.icon)")
     }
-}
-
-// MARK: - Supporting Types (if not already in ContentView)
-
-enum BridgeComponentStatus {
-    case connected
-    case connecting
-    case disconnected
-    case error
     
-    var description: String {
-        switch self {
-        case .connected: return "Connected and operational"
-        case .connecting: return "Establishing connection..."
-        case .disconnected: return "Not connected"
-        case .error: return "Connection error"
+    func debugBridgeOperations() {
+        addDebugMessage("🔧 Bridge debug mode enabled")
+        addDebugMessage("🎯 Bridge Components Status:")
+        addDebugMessage("   • SwiftGodot: \(swiftGodotStatus.displayName)")
+        addDebugMessage("   • GameEngine: \(gameEngineStatus.displayName)")
+        addDebugMessage("   • Bridge: \(bridgeStatus.displayName)")
+        addDebugMessage("   • Runtime: \(runtimeStatus.displayName)")
+        addDebugMessage("   • PCK Status: \(pckStatus.displayName)")
+        
+        if let pckPath = godotEngineManager.loadedPckPath {
+            addDebugMessage("📦 Loaded PCK: \(pckPath)")
+        }
+        
+        if let structure = godotEngineManager.projectStructure {
+            addDebugMessage("📊 Project Stats: \(structure.totalFiles) files, \(structure.scenes.count) scenes")
         }
     }
-}
-
-enum MetricTrend {
-    case up, down, stable
-}
-
-extension DateFormatter {
-    static let timeFormatter: DateFormatter = {
+    
+    func debugBundleContents() {
+        addDebugMessage("🔍 Inspecting app bundle contents...")
+        
+        // Use PCKManager to get detailed bundle info
+        let pckManager = PCKManager()
+        pckManager.debugBundleContents()
+        
+        // Wait a moment for the async operation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            for debugLine in pckManager.debugInfo {
+                self.addDebugMessage("📦 \(debugLine)")
+            }
+        }
+    }
+    
+    // MARK: - Performance Monitoring
+    
+    private func startPerformanceMonitoring() {
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.updatePerformanceMetrics()
+            }
+        }
+    }
+    
+    private func updatePerformanceMetrics() {
+        // Simulate realistic performance metrics with some variation
+        let oldLatency = performanceMetrics.bridgeLatency
+        let oldMemory = performanceMetrics.memoryUsage
+        let oldFrameRate = performanceMetrics.frameRate
+        let oldBuildTime = performanceMetrics.buildTime
+        
+        // Update metrics with realistic values
+        performanceMetrics.bridgeLatency = max(0.5, performanceMetrics.bridgeLatency + Double.random(in: -0.3...0.3))
+        performanceMetrics.memoryUsage = max(8.0, min(50.0, performanceMetrics.memoryUsage + Double.random(in: -2.0...2.0)))
+        performanceMetrics.frameRate = max(30.0, min(120.0, performanceMetrics.frameRate + Double.random(in: -5.0...5.0)))
+        performanceMetrics.buildTime = max(15.0, min(45.0, performanceMetrics.buildTime + Double.random(in: -2.0...2.0)))
+        
+        // Update trends
+        performanceMetrics.latencyTrend = calculateTrend(old: oldLatency, new: performanceMetrics.bridgeLatency, lowerIsBetter: true)
+        performanceMetrics.memoryTrend = calculateTrend(old: oldMemory, new: performanceMetrics.memoryUsage, lowerIsBetter: true)
+        performanceMetrics.frameRateTrend = calculateTrend(old: oldFrameRate, new: performanceMetrics.frameRate, lowerIsBetter: false)
+        performanceMetrics.buildTimeTrend = calculateTrend(old: oldBuildTime, new: performanceMetrics.buildTime, lowerIsBetter: true)
+    }
+    
+    private func calculateTrend(old: Double, new: Double, lowerIsBetter: Bool) -> PerformanceMetrics.TrendDirection {
+        let threshold = 0.1
+        let difference = new - old
+        
+        if abs(difference) < threshold {
+            return .stable
+        }
+        
+        if lowerIsBetter {
+            return difference < 0 ? .improving : .degrading
+        } else {
+            return difference > 0 ? .improving : .degrading
+        }
+    }
+    
+    // MARK: - Debug Console
+    
+    private func addDebugMessage(_ message: String) {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        return formatter
-    }()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        let timestamp = formatter.string(from: Date())
+        let formattedMessage = "[\(timestamp)] \(message)"
+        debugMessages.append(formattedMessage)
+        
+        // Keep only last 100 messages
+        if debugMessages.count > 100 {
+            debugMessages.removeFirst(debugMessages.count - 100)
+        }
+        
+        print(formattedMessage)
+    }
+    
+    func clearDebugConsole() {
+        debugMessages.removeAll()
+        addDebugMessage("🧹 Debug console cleared")
+    }
+    
+    func exportDebugLog() {
+        addDebugMessage("📤 Debug log export functionality would be implemented here")
+        // In a real app, this would save the debug log to a file
+    }
 }
+
+// MARK: - Extensions
+
+import Combine
