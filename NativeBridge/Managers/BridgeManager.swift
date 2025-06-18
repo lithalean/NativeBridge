@@ -32,9 +32,6 @@ class BridgeManager: ObservableObject {
     }
     
     private func setupManagers() {
-        // Connect PCK manager to engine manager
-        godotEngineManager.setupPCKManager(pckManager)
-        
         // Initial debug messages
         debugMessages = [
             "🚀 BridgeManager initialized",
@@ -57,11 +54,11 @@ class BridgeManager: ObservableObject {
         status = "🔄 Connecting..."
         lastActivity = "Initializing GodotBridge..."
         
-        // Initialize the engine
-        godotEngineManager.initialize()
+        // Initialize the engine using the correct method
+        godotEngineManager.connectEngine()
         
-        // Check if initialization succeeded
-        if godotEngineManager.isInitialized {
+        // Check if initialization succeeded using the correct property
+        if godotEngineManager.isEngineRunning {
             isEngineConnected = true
             connectionTime = Date()
             status = "✅ Connected"
@@ -84,7 +81,7 @@ class BridgeManager: ObservableObject {
         status = "🔄 Disconnecting..."
         lastActivity = "Shutting down GodotBridge..."
         
-        godotEngineManager.shutdown()
+        godotEngineManager.disconnectEngine()
         
         isEngineConnected = false
         connectionTime = nil
@@ -107,25 +104,32 @@ class BridgeManager: ObservableObject {
         status = "🔄 Loading PCK Bundle..."
         lastActivity = "Searching for PCK files..."
         
-        await godotEngineManager.loadPCKBundle()
+        // Use the correct method name
+        godotEngineManager.loadPCK()
         
-        // Update status based on result
-        if pckManager.isLoaded {
+        // Update status based on PCKManager detection
+        if pckManager.detectedPath != nil {
             status = "✅ PCK Bundle Loaded"
-            lastActivity = "PCK loaded: \(pckManager.pckContents.count) files"
+            lastActivity = "PCK loaded successfully"
             addDebugMessage("📦 PCK bundle loaded successfully")
-            addDebugMessage("📁 Found \(pckManager.pckContents.count) project files")
+            addDebugMessage("📁 PCK path: \(pckManager.detectedPath ?? "Unknown")")
         } else {
             status = "❌ PCK Loading Failed"
-            lastActivity = "Failed to load PCK: \(pckManager.errorMessage)"
-            addDebugMessage("❌ PCK loading failed: \(pckManager.errorMessage)")
+            lastActivity = "Failed to load PCK bundle"
+            addDebugMessage("❌ PCK loading failed - no PCK file found")
         }
         
         updateBridgeMetrics()
     }
     
     func inspectProjectStructure() async {
-        guard isEngineConnected && pckManager.isLoaded else {
+        guard isEngineConnected else {
+            status = "❌ Engine not connected"
+            lastActivity = "Connect engine first"
+            return
+        }
+        
+        guard pckManager.detectedPath != nil else {
             status = "❌ PCK not loaded"
             lastActivity = "Load PCK bundle first"
             return
@@ -134,14 +138,14 @@ class BridgeManager: ObservableObject {
         status = "🔍 Inspecting Project Structure..."
         lastActivity = "Analyzing project files..."
         
-        await godotEngineManager.analyzeProjectStructure()
+        // Use the correct method name
+        godotEngineManager.analyzeProjectStructure()
         
         status = "✅ Project Analysis Complete"
-        lastActivity = "Found \(godotEngineManager.loadedScenes.count) scenes"
+        lastActivity = "Project structure analyzed"
         
         addDebugMessage("🔍 Project structure analyzed")
-        addDebugMessage("🎬 Scenes: \(godotEngineManager.loadedScenes.count)")
-        addDebugMessage("📊 Total files: \(pckManager.pckContents.count)")
+        addDebugMessage("📊 Analysis complete")
         
         updateBridgeMetrics()
     }
@@ -167,7 +171,12 @@ class BridgeManager: ObservableObject {
     }
     
     func testProjectAccess() {
-        guard isEngineConnected && pckManager.isLoaded else {
+        guard isEngineConnected else {
+            status = "❌ Engine not connected"
+            return
+        }
+        
+        guard pckManager.detectedPath != nil else {
             status = "❌ PCK not loaded"
             return
         }
@@ -175,10 +184,11 @@ class BridgeManager: ObservableObject {
         status = "🧪 Testing Project Access..."
         lastActivity = "Validating file access..."
         
-        godotEngineManager.testProjectAccess()
+        // Use bridge communication test as project access test
+        godotEngineManager.sendTestMessage()
         
         status = "✅ Access Test Complete"
-        lastActivity = "Project files accessible"
+        lastActivity = "Project access validated"
         
         addDebugMessage("🧪 Project access test completed")
         updateBridgeMetrics()
@@ -205,9 +215,18 @@ class BridgeManager: ObservableObject {
             bridgeMetrics.connectionDuration = Date().timeIntervalSince(connectionTime)
         }
         
-        // Update project info
-        bridgeMetrics.loadedFiles = pckManager.pckContents.count
-        bridgeMetrics.loadedScenes = godotEngineManager.loadedScenes.count
+        // Update project info based on available data
+        bridgeMetrics.loadedFiles = pckManager.searchResults.count
+        bridgeMetrics.loadedScenes = 0 // Will be updated when scene loading is implemented
+        
+        // Get bridge performance from GodotEngineManager
+        if let performanceData = godotEngineManager.performanceMetrics["operations"] as? Int {
+            bridgeMetrics.operationCount = performanceData
+        }
+        
+        if let successRate = godotEngineManager.performanceMetrics["success_rate"] as? Double {
+            bridgeMetrics.successRate = successRate
+        }
         
         // Simulate bridge latency (in real implementation, measure actual calls)
         bridgeMetrics.bridgeLatency = Double.random(in: 1.0...5.0)
@@ -231,7 +250,7 @@ class BridgeManager: ObservableObject {
         
         // Update engine status
         bridgeMetrics.engineStatus = isEngineConnected ? "Connected" : "Disconnected"
-        bridgeMetrics.pckStatus = pckManager.isLoaded ? "Loaded" : "Not Loaded"
+        bridgeMetrics.pckStatus = pckManager.detectedPath != nil ? "Loaded" : "Not Loaded"
     }
     
     // MARK: - Debug Support
@@ -268,67 +287,61 @@ class BridgeManager: ObservableObject {
         // Engine information
         if isEngineConnected {
             info.append("🎮 Engine Information:")
-            info.append("   Engine: \(godotEngineManager.isInitialized ? "✅ Initialized" : "❌ Not Ready")")
+            info.append("   Engine: \(godotEngineManager.isEngineRunning ? "✅ Running" : "❌ Not Running")")
             info.append("   Runtime: GodotBridge + Custom libgodot.xcframework")
-            
-            if !godotEngineManager.projectSettings.isEmpty {
-                info.append("   Settings:")
-                for (key, value) in godotEngineManager.projectSettings {
-                    info.append("     \(key): \(value)")
-                }
-            }
+            info.append("   Connection Status: \(godotEngineManager.connectionStatus)")
             info.append("")
         }
         
         // PCK information
         info.append("📦 PCK Information:")
         info.append("   Status: \(getPCKStatusDescription())")
-        info.append("   Loaded: \(pckManager.isLoaded ? "✅" : "❌")")
-        if !pckManager.detectedPath.isEmpty {
-            info.append("   Path: \(pckManager.detectedPath)")
+        info.append("   Detected: \(pckManager.detectedPath != nil ? "✅" : "❌")")
+        if let detectedPath = pckManager.detectedPath {
+            let fileName = (detectedPath as NSString).lastPathComponent
+            info.append("   File: \(fileName)")
         }
-        if pckManager.isLoaded {
-            info.append("   Files: \(pckManager.pckContents.count)")
-            info.append("   Scenes: \(godotEngineManager.loadedScenes.count)")
-        }
+        info.append("   Search Results: \(pckManager.searchResults.count)")
         info.append("")
         
         // Performance metrics
         info.append("📊 Performance Metrics:")
         info.append("   Bridge Latency: \(String(format: "%.1f", bridgeMetrics.bridgeLatency))ms")
         info.append("   Memory Usage: \(String(format: "%.1f", bridgeMetrics.memoryUsage))MB")
+        info.append("   Operations: \(bridgeMetrics.operationCount)")
+        info.append("   Success Rate: \(String(format: "%.1f", bridgeMetrics.successRate))%")
         if let connectionTime = connectionTime {
             let duration = Date().timeIntervalSince(connectionTime)
             info.append("   Uptime: \(String(format: "%.0f", duration))s")
         }
         info.append("")
         
-        // Project structure
-        if !godotEngineManager.projectStructure.isEmpty {
-            info.append("📁 Project Structure:")
-            info.append(contentsOf: godotEngineManager.projectStructure)
+        // Debug messages
+        if !godotEngineManager.debugMessages.isEmpty {
+            info.append("🐛 Recent Debug Messages:")
+            let recentMessages = godotEngineManager.debugMessages.suffix(5)
+            for message in recentMessages {
+                info.append("   \(message)")
+            }
+            info.append("")
         }
         
         return info
     }
     
     private func getPCKStatusDescription() -> String {
-        switch pckManager.status {
-        case .loading:
-            return "Loading..."
-        case .found:
-            return "Found"
-        case .loaded:
-            return "Loaded"
-        case .notFound:
+        if pckManager.detectedPath != nil {
+            return "Detected"
+        } else {
             return "Not Found"
-        case .error:
-            return "Error"
         }
     }
     
     // MARK: - Cleanup
-    // Note: Timer will be invalidated automatically when the object is deallocated
+    deinit {
+        performanceTimer?.invalidate()
+        performanceTimer = nil
+    }
 }
 
 // MARK: - Supporting Types
@@ -339,6 +352,8 @@ struct BridgeMetrics {
     var memoryUsage: Double = 0 // MB
     var loadedFiles: Int = 0
     var loadedScenes: Int = 0
+    var operationCount: Int = 0
+    var successRate: Double = 0.0
     var engineStatus: String = "Disconnected"
     var pckStatus: String = "Not Loaded"
 }

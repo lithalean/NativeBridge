@@ -9,446 +9,374 @@
 import Foundation
 import SwiftUI
 
-@MainActor
 class GodotEngineManager: ObservableObject {
-    // MARK: - Published Properties for Glass UI Integration
-    @Published var isInitialized: Bool = false
-    @Published var isRunning: Bool = false
-    @Published var status: String = "Not Initialized"
-    @Published var errorMessage: String = ""
-    @Published var projectStructure: [String] = []
-    @Published var loadedScenes: [String] = []
-    @Published var projectSettings: [String: Any] = [:]
+    @Published var isEngineRunning = false
+    @Published var connectionStatus = "Disconnected"
+    @Published var lastError: String? = nil
+    @Published var debugMessages: [String] = []
+    @Published var performanceMetrics: [String: Any] = [:]
     
-    // MARK: - Bridge Integration
-    private var pckManager: PCKManager?
-    private var engineInitialized = false
-    private var bridgeMetrics = CustomBridgeMetrics()
+    // Bridge integration
+    private var bridgeInitialized = false
+    private let pckManager = PCKManager()
     
-    // MARK: - Custom Bridge Metrics
-    private struct CustomBridgeMetrics {
-        var messageCount = 0
-        var successfulOperations = 0
-        var lastOperationTime = Date()
-        var averageLatencyMs: Double = 0
-        
-        mutating func recordOperation(success: Bool, latencyMs: Double) {
-            messageCount += 1
-            if success { successfulOperations += 1 }
-            lastOperationTime = Date()
-            
-            // Update average latency
-            averageLatencyMs = (averageLatencyMs * Double(messageCount - 1) + latencyMs) / Double(messageCount)
-        }
-        
-        var successRate: Double {
-            messageCount > 0 ? Double(successfulOperations) / Double(messageCount) : 0
-        }
+    // Performance tracking
+    private var operationCount = 0
+    private var successCount = 0
+    private var startTime = Date()
+    
+    init() {
+        print("🎮 GodotEngineManager: Initializing with custom bridge...")
+        updatePerformanceMetrics()
     }
     
-    // MARK: - Initialization
-    func initialize() {
-        guard !engineInitialized else {
-            status = "Already Initialized"
-            return
-        }
+    // MARK: - Engine Lifecycle
+    
+    func initializeEngine() {
+        print("🎮 GodotEngineManager: Starting engine initialization...")
+        addDebugMessage("Initializing custom bridge...")
         
-        let startTime = Date()
-        status = "Initializing Custom Bridge + libgodot.xcframework..."
-        
-        // Initialize your custom GodotBridge
+        // Initialize the custom bridge
         let success = GodotBridge.initialize()
+        bridgeInitialized = success
         
         if success {
-            engineInitialized = true
-            isInitialized = true
-            isRunning = true
-            status = "Custom Bridge Initialized ✅"
-            errorMessage = ""
-            
-            // Record successful operation
-            let latency = Date().timeIntervalSince(startTime) * 1000
-            bridgeMetrics.recordOperation(success: true, latencyMs: latency)
-            
-            // Load initial project settings
-            loadInitialProjectSettings()
-            
             print("✅ GodotEngineManager: Custom bridge initialized successfully")
+            updateStatus("Custom Bridge Initialized ✅")
+            isEngineRunning = true
+            
+            // Test basic bridge functionality
+            testBridgeCommunication()
         } else {
-            handleError("Failed to initialize custom libgodot.xcframework")
-            
-            // Record failed operation
-            let latency = Date().timeIntervalSince(startTime) * 1000
-            bridgeMetrics.recordOperation(success: false, latencyMs: latency)
+            print("❌ GodotEngineManager: Failed to initialize custom bridge")
+            updateStatus("Bridge initialization failed", isError: true)
         }
+        
+        updatePerformanceMetrics()
     }
     
-    func shutdown() {
-        if engineInitialized {
-            status = "Shutting down custom bridge..."
-            
-            // Clean up resources
-            projectStructure = []
-            loadedScenes = []
-            projectSettings = [:]
-            
-            isRunning = false
-            isInitialized = false
-            status = "Engine Stopped"
-            engineInitialized = false
-            
-            print("🔄 GodotEngineManager: Custom bridge shutdown complete")
-        }
+    func shutdownEngine() {
+        print("🎮 GodotEngineManager: Shutting down engine...")
+        addDebugMessage("Shutting down engine...")
+        
+        // Note: Add proper shutdown when GodotBridge supports it
+        isEngineRunning = false
+        bridgeInitialized = false
+        updateStatus("Engine Shutdown")
+        
+        updatePerformanceMetrics()
     }
     
-    // MARK: - PCK Management with Custom Bridge
-    func setupPCKManager(_ manager: PCKManager) {
-        self.pckManager = manager
-    }
+    // MARK: - Bridge Communication Testing
     
-    func loadPCKBundle() async {
-        guard let pckManager = pckManager else {
-            handleError("PCK Manager not set up")
-            return
-        }
-        
-        guard isInitialized else {
-            handleError("Custom bridge not initialized")
-            return
-        }
-        
-        let startTime = Date()
-        status = "Loading PCK with Custom Bridge..."
-        
-        // Check for PCK file using PCKManager
-        pckManager.checkForPCK()
-        
-        // Wait for check to complete
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        
-        if pckManager.status == .found {
-            // Get the PCK path from PCKManager
-            let pckPath = pckManager.detectedPath
-            print("📦 Loading PCK via custom bridge: \(pckPath)")
-            
-            // Load PCK using your custom GodotBridge
-            let success = GodotBridge.loadResourcePack(path: pckPath)
-            
-            let latency = Date().timeIntervalSince(startTime) * 1000
-            bridgeMetrics.recordOperation(success: success, latencyMs: latency)
-            
-            if success {
-                // Update PCKManager status
-                await pckManager.loadPCK()
-                
-                if pckManager.isLoaded {
-                    status = "PCK Loaded via Custom Bridge ✅"
-                    await analyzeProjectStructure()
-                } else {
-                    handleError("PCKManager failed to update status")
-                }
-            } else {
-                handleError("Custom bridge failed to load PCK")
-            }
-        } else {
-            handleError("No PCK file found in bundle")
-            
-            // Record failed operation
-            let latency = Date().timeIntervalSince(startTime) * 1000
-            bridgeMetrics.recordOperation(success: false, latencyMs: latency)
-        }
-    }
-    
-    // MARK: - Project Analysis with Custom Bridge
-    func analyzeProjectStructure() async {
-        guard isInitialized else {
-            handleError("Custom bridge not initialized")
-            return
-        }
-        
-        guard let pckManager = pckManager, pckManager.isLoaded else {
-            handleError("No PCK loaded")
-            return
-        }
-        
-        let startTime = Date()
-        status = "Analyzing project with Custom Bridge..."
-        
-        // Get project settings using custom bridge
-        await loadProjectSettings()
-        
-        // Analyze file structure using both PCKManager and custom bridge
-        await analyzeFileStructure()
-        
-        // Find scenes using custom bridge file system
-        await findScenesUsingBridge()
-        
-        let latency = Date().timeIntervalSince(startTime) * 1000
-        bridgeMetrics.recordOperation(success: true, latencyMs: latency)
-        
-        status = "Custom Bridge Analysis Complete ✅"
-    }
-    
-    private func loadInitialProjectSettings() {
-        var settings: [String: Any] = [:]
-        
-        settings["bridge_type"] = "Custom Darwin ARM64 Bridge"
-        settings["engine_version"] = GodotBridge.getEngineVersion()
-        settings["platform"] = GodotBridge.getPlatform()
-        settings["architecture"] = GodotBridge.getArchitecture()
-        settings["framework"] = "libgodot.xcframework"
-        settings["runtime"] = "Custom Bridge Implementation"
-        settings["glass_ui"] = "WWDC 25 Liquid Glass ✅"
-        
-        projectSettings = settings
-    }
-    
-    private func loadProjectSettings() async {
-        var settings = projectSettings
-        
-        // Update with bridge metrics
-        settings["bridge_initialized"] = GodotBridge.isInitialized
-        settings["message_count"] = bridgeMetrics.messageCount
-        settings["success_rate"] = String(format: "%.1f%%", bridgeMetrics.successRate * 100)
-        settings["average_latency"] = String(format: "%.1f ms", bridgeMetrics.averageLatencyMs)
-        settings["last_operation"] = DateFormatter().string(from: bridgeMetrics.lastOperationTime)
-        
-        // Check for project.godot using custom bridge
-        let projectExists = GodotBridge.fileExists(path: "res://project.godot")
-        settings["project_file"] = projectExists ? "res://project.godot ✅" : "res://project.godot ❌"
-        
-        projectSettings = settings
-    }
-    
-    private func analyzeFileStructure() async {
-        guard let pckManager = pckManager else { return }
-        
-        // Get file list from PCKManager
-        await pckManager.inspectPCKContents()
-        
-        var structure: [String] = []
-        let files = pckManager.pckContents
-        
-        // Use custom bridge to verify file access
-        let verifiedFiles = files.filter { file in
-            GodotBridge.fileExists(path: file)
-        }
-        
-        // Group by file type
-        let scenes = verifiedFiles.filter { $0.hasSuffix(".tscn") || $0.hasSuffix(".scn") }
-        let scripts = verifiedFiles.filter { $0.hasSuffix(".gd") || $0.hasSuffix(".cs") }
-        let resources = verifiedFiles.filter { $0.hasSuffix(".tres") || $0.hasSuffix(".res") }
-        let assets = verifiedFiles.filter {
-            $0.hasSuffix(".png") || $0.hasSuffix(".jpg") ||
-            $0.hasSuffix(".ogg") || $0.hasSuffix(".wav") ||
-            $0.hasSuffix(".glb") || $0.hasSuffix(".gltf")
-        }
-        
-        structure.append("🎮 Custom Darwin ARM64 Bridge Analysis:")
-        structure.append("📊 Total Files in PCK: \(files.count)")
-        structure.append("✅ Verified via Bridge: \(verifiedFiles.count)")
-        structure.append("🔧 Engine: \(GodotBridge.getEngineVersion())")
-        structure.append("📱 Platform: \(GodotBridge.getPlatform()) (\(GodotBridge.getArchitecture()))")
-        structure.append("🛠️ Framework: Custom libgodot.xcframework")
-        structure.append("🎨 UI: WWDC 25 Liquid Glass")
-        structure.append("")
-        
-        if !scenes.isEmpty {
-            structure.append("🎬 Scenes (\(scenes.count)):")
-            scenes.prefix(5).forEach { scene in
-                let accessible = GodotBridge.fileExists(path: scene)
-                structure.append("   📄 \(scene) \(accessible ? "✅" : "❌")")
-            }
-            if scenes.count > 5 {
-                structure.append("   ... and \(scenes.count - 5) more")
-            }
-            structure.append("")
-        }
-        
-        if !scripts.isEmpty {
-            structure.append("📝 Scripts (\(scripts.count)):")
-            scripts.prefix(5).forEach { script in
-                let accessible = GodotBridge.fileExists(path: script)
-                structure.append("   📄 \(script) \(accessible ? "✅" : "❌")")
-            }
-            if scripts.count > 5 {
-                structure.append("   ... and \(scripts.count - 5) more")
-            }
-            structure.append("")
-        }
-        
-        if !resources.isEmpty {
-            structure.append("📦 Resources (\(resources.count)):")
-            resources.prefix(3).forEach { resource in
-                let accessible = GodotBridge.fileExists(path: resource)
-                structure.append("   📄 \(resource) \(accessible ? "✅" : "❌")")
-            }
-            if resources.count > 3 {
-                structure.append("   ... and \(resources.count - 3) more")
-            }
-            structure.append("")
-        }
-        
-        if !assets.isEmpty {
-            structure.append("🎨 Assets (\(assets.count)):")
-            let grouped = Dictionary(grouping: assets) { asset in
-                String(asset.split(separator: ".").last ?? "unknown")
-            }
-            
-            for (ext, files) in grouped.sorted(by: { $0.key < $1.key }) {
-                structure.append("   .\(ext): \(files.count) files")
-            }
-            structure.append("")
-        }
-        
-        // Add custom bridge status
-        structure.append("🔧 Custom Bridge Status:")
-        structure.append("   → libgodot.xcframework: ✅")
-        structure.append("   → Bridge Interface: ✅")
-        structure.append("   → PCK Loading: ✅")
-        structure.append("   → File System Access: ✅")
-        structure.append("   → Message Count: \(bridgeMetrics.messageCount)")
-        structure.append("   → Success Rate: \(String(format: "%.1f%%", bridgeMetrics.successRate * 100))")
-        structure.append("   → Average Latency: \(String(format: "%.1f ms", bridgeMetrics.averageLatencyMs))")
-        
-        projectStructure = structure
-    }
-    
-    private func findScenesUsingBridge() async {
-        guard let pckManager = pckManager else { return }
-        
-        // Get scene files that are verified by the custom bridge
-        let sceneFiles = pckManager.pckContents.filter { file in
-            (file.hasSuffix(".tscn") || file.hasSuffix(".scn")) &&
-            GodotBridge.fileExists(path: file)
-        }
-        
-        loadedScenes = sceneFiles
-    }
-    
-    // MARK: - Testing Methods with Custom Bridge
-    func sendTestMessage() {
-        guard isInitialized else {
-            handleError("Custom bridge not initialized")
-            return
-        }
-        
-        let startTime = Date()
-        status = "Testing Custom Bridge Communication..."
-        
-        // Test custom bridge functionality
+    func testBridgeCommunication() {
         print("🧪 Testing custom bridge communication:")
-        print("🔧 Engine Version: \(GodotBridge.getEngineVersion())")
-        print("📱 Platform: \(GodotBridge.getPlatform())")
-        print("🏗️ Architecture: \(GodotBridge.getArchitecture())")
-        print("🛠️ Bridge Initialized: \(GodotBridge.isInitialized)")
+        addDebugMessage("Testing bridge communication...")
         
-        // Test file system access
-        let testFile = "res://project.godot"
-        let fileExists = GodotBridge.fileExists(path: testFile)
-        print("📄 File Access Test (\(testFile)): \(fileExists ? "✅" : "❌")")
+        operationCount += 1
         
-        let latency = Date().timeIntervalSince(startTime) * 1000
-        bridgeMetrics.recordOperation(success: true, latencyMs: latency)
+        // Test engine version
+        let version = GodotBridge.getEngineVersion()
+        print("🔧 Engine Version: \(version)")
+        addDebugMessage("Engine Version: \(version)")
         
-        status = "Custom Bridge Test Complete ✅"
+        // Test platform detection
+        let platform = GodotBridge.getPlatform()
+        print("📱 Platform: \(platform)")
+        addDebugMessage("Platform: \(platform)")
+        
+        // Test architecture
+        let architecture = GodotBridge.getArchitecture()
+        print("🏗️ Architecture: \(architecture)")
+        addDebugMessage("Architecture: \(architecture)")
+        
+        // Test bridge status
+        let initialized = GodotBridge.isInitialized
+        print("🛠️ Bridge Initialized: \(initialized)")
+        addDebugMessage("Bridge Status: \(initialized ? "✅ Ready" : "❌ Not Ready")")
+        
+        // Test file access
+        let testFileExists = GodotBridge.fileExists(path: "res://project.godot")
+        print("📄 File Access Test (res://project.godot): \(testFileExists ? "✅" : "❌")")
+        addDebugMessage("File Access Test: \(testFileExists ? "✅ Working" : "❌ Failed")")
+        
+        successCount += 1
+        updatePerformanceMetrics()
     }
     
-    func testProjectAccess() {
-        guard isInitialized else {
-            handleError("Custom bridge not initialized")
+    // MARK: - Enhanced PCK Loading with Comprehensive Debug
+    
+    func loadPCKBundle() {
+        print("🎮 GodotEngineManager: Starting enhanced PCK loading process...")
+        addDebugMessage("Starting PCK loading process...")
+        
+        // 1. Ensure bridge is initialized
+        guard bridgeInitialized else {
+            print("❌ Bridge not initialized - cannot load PCK")
+            updateStatus("Bridge not initialized", isError: true)
+            addDebugMessage("❌ Bridge not initialized")
             return
         }
         
-        guard let pckManager = pckManager, pckManager.isLoaded else {
-            handleError("No PCK loaded")
+        // 2. Debug PCKManager state
+        print("🔍 PCKManager Debug State:")
+        print("  Detected Path: \(pckManager.detectedPath ?? "nil")")
+        print("  Bundle Info: \(pckManager.bundleInfo)")
+        print("  Search Results Count: \(pckManager.searchResults.count)")
+        
+        addDebugMessage("PCK Detection State: \(pckManager.detectionStatus)")
+        
+        // Force re-detection if nothing found
+        if pckManager.detectedPath == nil {
+            print("🔄 No PCK detected, forcing re-detection...")
+            addDebugMessage("🔄 Forcing PCK re-detection...")
+            pckManager.forceRedetection()
+        }
+        
+        // 3. Check detection results
+        guard let pckPath = pckManager.detectedPath else {
+            print("❌ GodotEngineManager Error: No PCK file found after enhanced detection")
+            print("📋 Search results:")
+            for result in pckManager.searchResults {
+                print("  \(result)")
+                addDebugMessage(result)
+            }
+            updateStatus("No PCK file found in bundle", isError: true)
+            addDebugMessage("❌ No PCK file found in bundle")
             return
         }
         
-        let startTime = Date()
-        status = "Testing Project Access via Custom Bridge..."
+        print("🎯 Using PCK path: \(pckPath)")
+        addDebugMessage("🎯 Using PCK: \((pckPath as NSString).lastPathComponent)")
         
-        var testResults: [String] = []
-        testResults.append("🧪 Custom Bridge Integration Test:")
-        testResults.append("   Bridge Type: Custom Darwin ARM64 Implementation")
-        testResults.append("   Engine: \(GodotBridge.getEngineVersion())")
-        testResults.append("   Platform: \(GodotBridge.getPlatform())")
-        testResults.append("   Architecture: \(GodotBridge.getArchitecture())")
-        testResults.append("   Framework: libgodot.xcframework ✅")
-        testResults.append("   Bridge Initialized: \(GodotBridge.isInitialized ? "✅" : "❌")")
-        testResults.append("   PCK Loaded: \(pckManager.isLoaded ? "✅" : "❌")")
-        testResults.append("   Glass UI: WWDC 25 Liquid Glass ✅")
+        // 4. Verify file exists before loading
+        let fileExists = FileManager.default.fileExists(atPath: pckPath)
+        print("📁 File exists check: \(fileExists)")
         
-        // Test file access for key files
-        let testFiles = ["res://project.godot", "res://main.tscn"]
-        testResults.append("   File Access Tests:")
-        for file in testFiles {
-            let accessible = GodotBridge.fileExists(path: file)
-            testResults.append("     \(file): \(accessible ? "✅" : "❌")")
+        if !fileExists {
+            print("❌ PCK file does not exist at detected path: \(pckPath)")
+            updateStatus("PCK file not accessible", isError: true)
+            addDebugMessage("❌ PCK file not accessible")
+            return
         }
         
-        // Test directory listing
-        let rootContents = GodotBridge.listDirectory(path: "res://")
-        testResults.append("   Root Directory Contents: \(rootContents.count) items")
-        
-        // Bridge metrics
-        testResults.append("   Bridge Metrics:")
-        testResults.append("     Total Operations: \(bridgeMetrics.messageCount)")
-        testResults.append("     Success Rate: \(String(format: "%.1f%%", bridgeMetrics.successRate * 100))")
-        testResults.append("     Average Latency: \(String(format: "%.1f ms", bridgeMetrics.averageLatencyMs))")
-        
-        if !loadedScenes.isEmpty {
-            testResults.append("   Scenes Found: \(loadedScenes.count)")
-            testResults.append("   First Scene: \(loadedScenes[0])")
+        // 5. Get file info
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: pckPath)
+            let fileSize = attributes[.size] as? Int64 ?? 0
+            let sizeInMB = Double(fileSize) / (1024 * 1024)
+            print("📊 PCK file size: \(String(format: "%.2f", sizeInMB)) MB")
+            addDebugMessage("📊 PCK size: \(String(format: "%.2f", sizeInMB)) MB")
+        } catch {
+            print("⚠️ Could not get PCK file attributes: \(error)")
+            addDebugMessage("⚠️ Could not get file attributes")
         }
         
-        testResults.append("")
-        testResults.append("🎮 Phase 1 Completion Status:")
-        testResults.append("   → Custom Bridge Integration ✅")
-        testResults.append("   → PCK Loading System ✅")
-        testResults.append("   → File System Access ✅")
-        testResults.append("   → Glass UI Integration ✅")
-        testResults.append("   → Real-time Metrics ✅")
-        testResults.append("   → Darwin ARM64 Optimized ✅")
-        testResults.append("   → Phase 1 Foundation Complete ✅")
+        // 6. Attempt loading through bridge
+        print("🔗 Loading PCK through custom bridge...")
+        addDebugMessage("🔗 Loading PCK through bridge...")
+        operationCount += 1
         
-        // Add to project structure for display
-        projectStructure.append(contentsOf: ["", "🧪 Custom Bridge Test Results:"] + testResults)
+        let success = GodotBridge.loadResourcePack(path: pckPath)
         
-        let latency = Date().timeIntervalSince(startTime) * 1000
-        bridgeMetrics.recordOperation(success: true, latencyMs: latency)
+        if success {
+            print("✅ PCK loaded successfully through custom bridge")
+            updateStatus("PCK Loaded via Custom Bridge ✅")
+            addDebugMessage("✅ PCK loaded successfully!")
+            successCount += 1
+            
+            // 7. Verify loading by testing file access
+            testPCKFileAccess(pckPath)
+        } else {
+            print("❌ Failed to load PCK through custom bridge")
+            updateStatus("PCK loading failed", isError: true)
+            addDebugMessage("❌ PCK loading failed")
+        }
         
-        status = "Custom Bridge Integration Test Complete ✅"
+        updatePerformanceMetrics()
     }
     
-    // MARK: - Error Handling
-    private func handleError(_ message: String) {
-        errorMessage = message
-        status = "Error: \(message)"
-        print("❌ GodotEngineManager Error: \(message)")
+    // MARK: - PCK File Access Testing
+    
+    func testPCKFileAccess(_ pckPath: String) {
+        print("🧪 Testing PCK file access after loading...")
+        addDebugMessage("🧪 Testing PCK file access...")
         
-        // Record failed operation
-        bridgeMetrics.recordOperation(success: false, latencyMs: 0)
-    }
-    
-    // MARK: - Status Properties for Glass UI
-    var statusColor: Color {
-        if isRunning { return .green }
-        if isInitialized { return .blue }
-        if !errorMessage.isEmpty { return .red }
-        return .orange
-    }
-    
-    // MARK: - Bridge Metrics for Glass UI
-    func getBridgeMetricsForGlass() -> [String: String] {
-        return [
-            "Operations": "\(bridgeMetrics.messageCount)",
-            "Success Rate": String(format: "%.1f%%", bridgeMetrics.successRate * 100),
-            "Avg Latency": String(format: "%.1f ms", bridgeMetrics.averageLatencyMs),
-            "Engine": GodotBridge.getEngineVersion(),
-            "Platform": "\(GodotBridge.getPlatform()) (\(GodotBridge.getArchitecture()))",
-            "Framework": "libgodot.xcframework",
-            "Bridge Status": GodotBridge.isInitialized ? "Connected" : "Disconnected"
+        // Test common Godot project files
+        let testPaths = [
+            "res://project.godot",
+            "res://project.binary",
+            "res://main.tscn",
+            "res://default_env.tres",
+            "res://icon.png"
         ]
+        
+        var foundFiles = 0
+        for testPath in testPaths {
+            let exists = GodotBridge.fileExists(path: testPath)
+            print("  \(exists ? "✅" : "❌") \(testPath)")
+            if exists {
+                foundFiles += 1
+                addDebugMessage("✅ Found: \(testPath)")
+            }
+        }
+        
+        addDebugMessage("📁 Found \(foundFiles)/\(testPaths.count) common files")
+        
+        // Try to list res:// directory
+        print("📁 Listing res:// directory contents...")
+        let contents = GodotBridge.listDirectory(path: "res://")
+        print("  Found \(contents.count) items in res://:")
+        
+        for item in contents.prefix(10) { // Show first 10 items
+            print("    📄 \(item)")
+        }
+        
+        if contents.count > 10 {
+            print("    ... and \(contents.count - 10) more items")
+        }
+        
+        addDebugMessage("📁 res:// contains \(contents.count) items")
+        
+        // Add some key files to debug messages
+        for item in contents.prefix(5) {
+            addDebugMessage("📄 \(item)")
+        }
+        
+        if contents.count > 5 {
+            addDebugMessage("... and \(contents.count - 5) more files")
+        }
+    }
+    
+    // MARK: - Bundle Debug Helper
+    
+    func debugBundleForPCK() {
+        print("🔍 BUNDLE DEBUG: Comprehensive bundle analysis for PCK detection...")
+        addDebugMessage("🔍 Analyzing bundle structure...")
+        
+        let bundle = Bundle.main
+        print("📦 Bundle identifier: \(bundle.bundleIdentifier ?? "Unknown")")
+        print("📦 Bundle path: \(bundle.bundlePath)")
+        
+        // Check if GameContent exists in the app bundle
+        let bundlePath = bundle.bundlePath
+        let gameContentPath = "\(bundlePath)/GameContent"
+        
+        print("🎮 Checking for GameContent directory...")
+        var isDirectory: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: gameContentPath, isDirectory: &isDirectory)
+        
+        print("🎮 GameContent exists: \(exists)")
+        print("🎮 Is directory: \(isDirectory.boolValue)")
+        
+        if exists && isDirectory.boolValue {
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(atPath: gameContentPath)
+                print("🎮 GameContent contents (\(contents.count) items):")
+                addDebugMessage("🎮 GameContent: \(contents.count) items")
+                
+                for item in contents {
+                    let itemPath = "\(gameContentPath)/\(item)"
+                    let itemExists = FileManager.default.fileExists(atPath: itemPath)
+                    print("  📄 \(item) - exists: \(itemExists)")
+                    
+                    if item.hasSuffix(".pck") {
+                        print("    🎯 Found PCK file: \(item)")
+                        addDebugMessage("🎯 Found PCK: \(item)")
+                    }
+                }
+            } catch {
+                print("❌ Error reading GameContent: \(error)")
+                addDebugMessage("❌ Error reading GameContent")
+            }
+        } else {
+            print("⚠️ GameContent directory not found or not accessible")
+            addDebugMessage("⚠️ GameContent not found")
+            
+            // Alternative: check if PCK is directly in bundle
+            print("🔍 Checking for PCK files directly in bundle...")
+            do {
+                let bundleContents = try FileManager.default.contentsOfDirectory(atPath: bundlePath)
+                let pckFiles = bundleContents.filter { $0.hasSuffix(".pck") }
+                print("📋 PCK files in bundle root: \(pckFiles)")
+                addDebugMessage("📋 Bundle PCK files: \(pckFiles.count)")
+            } catch {
+                print("❌ Error reading bundle contents: \(error)")
+                addDebugMessage("❌ Error reading bundle")
+            }
+        }
+    }
+    
+    // MARK: - Status and Debug Management
+    
+    private func updateStatus(_ message: String, isError: Bool = false) {
+        DispatchQueue.main.async {
+            self.connectionStatus = message
+            if isError {
+                self.lastError = message
+            } else {
+                self.lastError = nil
+            }
+        }
+    }
+    
+    private func addDebugMessage(_ message: String) {
+        DispatchQueue.main.async {
+            let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+            self.debugMessages.append("[\(timestamp)] \(message)")
+            
+            // Keep only last 50 messages
+            if self.debugMessages.count > 50 {
+                self.debugMessages.removeFirst(self.debugMessages.count - 50)
+            }
+        }
+    }
+    
+    private func updatePerformanceMetrics() {
+        DispatchQueue.main.async {
+            let uptime = Date().timeIntervalSince(self.startTime)
+            let successRate = self.operationCount > 0 ? Double(self.successCount) / Double(self.operationCount) * 100 : 0
+            
+            self.performanceMetrics = [
+                "uptime": uptime,
+                "operations": self.operationCount,
+                "success_rate": successRate,
+                "bridge_status": self.bridgeInitialized ? "Connected" : "Disconnected"
+            ]
+        }
+    }
+    
+    // MARK: - Public Interface
+    
+    func connectEngine() {
+        initializeEngine()
+    }
+    
+    func disconnectEngine() {
+        shutdownEngine()
+    }
+    
+    func sendTestMessage() {
+        testBridgeCommunication()
+    }
+    
+    func loadPCK() {
+        loadPCKBundle()
+    }
+    
+    func analyzeProjectStructure() {
+        guard let pckPath = pckManager.detectedPath else {
+            addDebugMessage("❌ No PCK loaded for analysis")
+            return
+        }
+        
+        addDebugMessage("🔍 Analyzing project structure...")
+        testPCKFileAccess(pckPath)
+    }
+    
+    func clearDebugMessages() {
+        DispatchQueue.main.async {
+            self.debugMessages.removeAll()
+        }
     }
 }

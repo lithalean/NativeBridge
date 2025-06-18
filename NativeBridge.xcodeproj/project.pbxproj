@@ -36,7 +36,7 @@
 			path = NativeBridge;
 			sourceTree = "<group>";
 		};
-		DF9A0AF12E019A990014C156 /* GameContent */ = {
+		DF9A0AF92E01A4F30014C156 /* GameContent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = GameContent;
 			sourceTree = "<group>";
@@ -59,11 +59,11 @@
 		DF5644ED2DFC36A5005C05CC = {
 			isa = PBXGroup;
 			children = (
+				DF9A0AF92E01A4F30014C156 /* GameContent */,
 				DF5644F82DFC36A5005C05CC /* NativeBridge */,
 				DF5644F72DFC36A5005C05CC /* Products */,
 				DFCAB2952DFC3E8A00CCA0D8 /* libgodot.xcframework */,
 				DF9A0AC72E01716D0014C156 /* Frameworks */,
-				DF9A0AF12E019A990014C156 /* GameContent */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,7 +101,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DF5644F82DFC36A5005C05CC /* NativeBridge */,
-				DF9A0AF12E019A990014C156 /* GameContent */,
+				DF9A0AF92E01A4F30014C156 /* GameContent */,
 			);
 			name = NativeBridge;
 			packageProductDependencies = (

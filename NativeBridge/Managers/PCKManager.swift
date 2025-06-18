@@ -5,371 +5,216 @@
 //  Real SwiftGodotKit integration for PCK loading
 //
 
+// Enhanced PCK Detection with Comprehensive Debugging
+// Add this to PCKManager.swift to debug the detection issue
+
 import Foundation
 
-@MainActor
 class PCKManager: ObservableObject {
-    @Published var status: PCKStatus = .loading
-    @Published var errorMessage: String = ""
-    @Published var detectedPath: String = ""
-    @Published var debugInfo: [String] = []
-    @Published var isLoaded: Bool = false
-    @Published var pckContents: [String] = []
-    @Published var loadingProgress: Double = 0.0
+    @Published var detectedPath: String? = nil
+    @Published var bundleInfo: String = ""
+    @Published var searchResults: [String] = []
     
-    enum PCKStatus {
-        case loading
-        case found
-        case notFound
-        case loaded
-        case error
+    init() {
+        print("🔍 PCKManager: Initializing with enhanced detection...")
+        detectPCKFiles()
+        updateBundleInfo()
     }
     
-    // Configuration
-    private let possibleFolders = ["GameContent", "PCK", "Pack", "GameData"]
-    private let pckFileName = "game.pck"
-    private var loadedPCKPath: String?
-    
-    // MARK: - Public Methods
-    
-    func checkForPCK() {
-        status = .loading
-        errorMessage = ""
-        detectedPath = ""
-        debugInfo = []
-        isLoaded = false
-        loadingProgress = 0.0
+    func detectPCKFiles() {
+        print("🔍 PCK DETECTION: Starting Bundle Resource search...")
+        searchResults.removeAll()
         
-        Task {
+        // Method 1: Direct Bundle API search for game.pck
+        if let gamePckPath = Bundle.main.path(forResource: "game", ofType: "pck") {
+            print("✅ METHOD 1 SUCCESS: Found game.pck via Bundle.main.path")
+            print("📍 Path: \(gamePckPath)")
+            detectedPath = gamePckPath
+            searchResults.append("✅ METHOD 1: Bundle.main.path found game.pck")
+            validatePCKFile(at: gamePckPath)
+            return
+        } else {
+            print("❌ METHOD 1: Bundle.main.path(forResource: 'game', ofType: 'pck') returned nil")
+            searchResults.append("❌ METHOD 1: Bundle.main.path returned nil")
+        }
+        
+        // Method 2: Search all PCK files in bundle
+        let allPCKs = Bundle.main.paths(forResourcesOfType: "pck", inDirectory: nil)
+        print("🔍 METHOD 2: Bundle.main.paths(forResourcesOfType: 'pck') found \(allPCKs.count) files:")
+        for (index, pckPath) in allPCKs.enumerated() {
+            print("  [\(index + 1)] \(pckPath)")
+            searchResults.append("✅ METHOD 2: Found PCK #\(index + 1): \(pckPath)")
+        }
+        
+        if let firstPCK = allPCKs.first {
+            print("✅ METHOD 2 SUCCESS: Using first PCK file found")
+            detectedPath = firstPCK
+            validatePCKFile(at: firstPCK)
+            return
+        } else {
+            searchResults.append("❌ METHOD 2: No PCK files found via Bundle.main.paths")
+        }
+        
+        // Method 3: Check bundle contents manually
+        print("🔍 METHOD 3: Manual bundle inspection...")
+        let bundle = Bundle.main
+        
+        if let resourcePath = bundle.resourcePath {
+            print("📁 Resource path: \(resourcePath)")
+            searchResults.append("📁 Resource path: \(resourcePath)")
+            
             do {
-                let result = try findPCKFile()
-                updateStatus(result)
+                let allResources = try FileManager.default.contentsOfDirectory(atPath: resourcePath)
+                let pckFiles = allResources.filter { $0.hasSuffix(".pck") }
+                
+                print("📋 All resources in bundle: \(allResources.count) items")
+                print("🎯 PCK files found: \(pckFiles)")
+                searchResults.append("📋 Total resources: \(allResources.count), PCK files: \(pckFiles.count)")
+                
+                if let pckFile = pckFiles.first {
+                    let fullPath = "\(resourcePath)/\(pckFile)"
+                    print("✅ METHOD 3 SUCCESS: Found \(pckFile)")
+                    print("📍 Full path: \(fullPath)")
+                    detectedPath = fullPath
+                    searchResults.append("✅ METHOD 3: Found \(pckFile)")
+                    validatePCKFile(at: fullPath)
+                    return
+                } else {
+                    searchResults.append("❌ METHOD 3: No .pck files in resource directory")
+                }
             } catch {
-                handleError(error)
+                print("❌ METHOD 3 ERROR: \(error)")
+                searchResults.append("❌ METHOD 3 ERROR: \(error.localizedDescription)")
             }
         }
-    }
-    
-    func loadPCK() async {
-        guard status == .found, !detectedPath.isEmpty else {
-            errorMessage = "No PCK file detected. Run checkForPCK() first."
-            status = .error
-            return
-        }
         
-        do {
-            loadingProgress = 0.2
-            debugInfo.append("🔄 Starting PCK load: \(detectedPath)")
-            
-            // Real SwiftGodotKit PCK loading
-            await simulateLoadingProgress()
-            
-            // Use SwiftGodotKit to load the PCK file
-            let success = await loadPCKWithGodot()
-            
-            loadingProgress = 0.7
-            
-            if success {
-                loadedPCKPath = detectedPath
-                isLoaded = true
-                status = .loaded
-                loadingProgress = 1.0
-                debugInfo.append("✅ PCK loaded successfully with SwiftGodotKit!")
-                
-                // Inspect the loaded content
-                await inspectPCKContents()
-                
+        // Method 4: Check if it's in a subdirectory
+        print("🔍 METHOD 4: Checking subdirectories...")
+        let subdirs = ["GameContent", "PCK", "Pack", "Resources"]
+        
+        for subdir in subdirs {
+            if let subdirPck = Bundle.main.path(forResource: "game", ofType: "pck", inDirectory: subdir) {
+                print("✅ METHOD 4 SUCCESS: Found in \(subdir) subdirectory")
+                print("📍 Path: \(subdirPck)")
+                detectedPath = subdirPck
+                searchResults.append("✅ METHOD 4: Found in \(subdir) subdirectory")
+                validatePCKFile(at: subdirPck)
+                return
             } else {
-                throw PCKError.loadFailed("SwiftGodotKit failed to load PCK file")
+                print("❌ METHOD 4: Not found in \(subdir)")
+                searchResults.append("❌ METHOD 4: Not found in \(subdir)")
             }
-            
-        } catch {
-            handleError(error)
-            loadingProgress = 0.0
         }
+        
+        print("❌ ALL METHODS FAILED: No PCK file found")
+        searchResults.append("❌ ALL METHODS FAILED: No PCK file detected")
+        
+        // Final debug: Show us what IS in the bundle
+        debugBundleContents()
     }
     
-    func inspectPCKContents() async {
-        guard isLoaded else {
-            debugInfo.append("❌ Cannot inspect contents - PCK not loaded")
-            return
-        }
+    func validatePCKFile(at path: String) {
+        print("🧪 Validating PCK file at: \(path)")
         
-        pckContents = []
-        debugInfo.append("🔍 Inspecting PCK contents...")
+        let fileExists = FileManager.default.fileExists(atPath: path)
+        print("  File exists: \(fileExists)")
         
-        // Get all files in the project using SwiftGodotKit
-        let contents = await getAllProjectFiles()
-        pckContents = contents
-        
-        debugInfo.append("📋 Found \(contents.count) files in PCK:")
-        contents.prefix(10).forEach { file in
-            debugInfo.append("   📄 \(file)")
-        }
-        
-        if contents.count > 10 {
-            debugInfo.append("   ... and \(contents.count - 10) more files")
-        }
-    }
-    
-    func unloadPCK() {
-        if let path = loadedPCKPath {
-            debugInfo.append("🔄 Unloading PCK: \(path)")
-            // SwiftGodotKit handles cleanup automatically
-            isLoaded = false
-            loadedPCKPath = nil
-            pckContents = []
-            status = .found
-            debugInfo.append("✅ PCK marked as unloaded")
+        if fileExists {
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: path)
+                let fileSize = attributes[.size] as? Int64 ?? 0
+                let sizeInMB = Double(fileSize) / (1024 * 1024)
+                print("  File size: \(String(format: "%.2f", sizeInMB)) MB")
+                
+                // Basic file validation - check if it starts with expected PCK header
+                let fileData = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+                let headerBytes = fileData.prefix(4)
+                let headerString = String(data: headerBytes, encoding: .utf8) ?? "Unknown"
+                print("  Header bytes: \(headerBytes.map { String(format: "%02X", $0) }.joined(separator: " "))")
+                print("  Header string: \(headerString)")
+                
+                searchResults.append("✅ PCK Validation: \(String(format: "%.2f", sizeInMB)) MB, Header: \(headerString)")
+                
+            } catch {
+                print("  ❌ Error validating file: \(error)")
+                searchResults.append("❌ PCK Validation Error: \(error.localizedDescription)")
+            }
+        } else {
+            searchResults.append("❌ PCK file does not exist at detected path")
         }
     }
     
     func debugBundleContents() {
-        Task {
-            let info = getBundleDebugInfo()
-            debugInfo = info
-        }
-    }
-    
-    // MARK: - Private SwiftGodotKit Methods
-    
-    private func loadPCKWithGodot() async -> Bool {
-        // Real SwiftGodotKit PCK loading
-        do {
-            debugInfo.append("🎮 Loading PCK with SwiftGodotKit...")
-            
-            // Check if Godot is ready
-            guard GodotBridge.isInitialized else {
-                debugInfo.append("❌ Godot runtime not initialized")
-                return false
-            }
-            
-            // Load the PCK file using SwiftGodotKit
-            // Note: SwiftGodotKit handles PCK loading through the runtime
-            // The actual loading happens when the Godot runtime starts with the PCK
-            
-            debugInfo.append("📦 PCK path validated: \(detectedPath)")
-            
-            // Validate file exists and is readable
-            let fileManager = FileManager.default
-            guard fileManager.fileExists(atPath: detectedPath) else {
-                debugInfo.append("❌ PCK file not found at path")
-                return false
-            }
-            
-            // Get file attributes
-            let attributes = try fileManager.attributesOfItem(atPath: detectedPath)
-            let size = attributes[.size] as? Int64 ?? 0
-            debugInfo.append("📊 PCK file size: \(formatFileSize(size))")
-            
-            // For SwiftGodotKit, PCK loading is handled by the runtime initialization
-            // We'll mark it as loaded if the file is valid
-            debugInfo.append("✅ PCK validation successful")
-            
-            return true
-            
-        } catch {
-            debugInfo.append("❌ Error loading PCK: \(error.localizedDescription)")
-            return false
-        }
-    }
-    
-    private func getAllProjectFiles() async -> [String] {
-        var files: [String] = []
+        print("🔍 FINAL DEBUG: Complete bundle contents analysis...")
         
-        // With SwiftGodotKit, we need to access the Godot filesystem
-        // For now, we'll simulate the content based on typical Godot projects
-        // In Phase 2, we'll implement real file system access through Godot
+        let bundle = Bundle.main
+        print("📦 Bundle path: \(bundle.bundlePath)")
+        print("📦 Bundle identifier: \(bundle.bundleIdentifier ?? "Unknown")")
         
-        if let path = loadedPCKPath {
-            debugInfo.append("🔍 Analyzing PCK structure...")
+        if let resourcePath = bundle.resourcePath {
+            print("📁 Resource path: \(resourcePath)")
             
-            // Generate realistic project structure
-            files = generateRealisticPCKContents()
-            
-            debugInfo.append("📁 Project structure generated from PCK analysis")
-        }
-        
-        return files.sorted()
-    }
-    
-    private func generateRealisticPCKContents() -> [String] {
-        // Generate realistic content based on Godot project standards
-        return [
-            "res://project.godot",
-            "res://main.tscn",
-            "res://scenes/player/player.tscn",
-            "res://scenes/enemies/enemy.tscn",
-            "res://scenes/ui/main_menu.tscn",
-            "res://scenes/ui/game_ui.tscn",
-            "res://scripts/player.gd",
-            "res://scripts/game_manager.gd",
-            "res://scripts/enemy.gd",
-            "res://scripts/ui/menu_controller.gd",
-            "res://assets/textures/player_sprite.png",
-            "res://assets/textures/enemy_sprite.png",
-            "res://assets/textures/background.png",
-            "res://assets/textures/ui_elements.png",
-            "res://assets/audio/music/main_theme.ogg",
-            "res://assets/audio/sfx/jump.wav",
-            "res://assets/audio/sfx/collect.wav",
-            "res://assets/audio/sfx/enemy_hit.wav",
-            "res://assets/fonts/main_font.ttf",
-            "res://resources/player_stats.tres",
-            "res://resources/enemy_data.tres",
-            "res://shaders/water_effect.gdshader",
-            "res://shaders/glow_effect.gdshader"
-        ]
-    }
-    
-    private func simulateLoadingProgress() async {
-        // Simulate loading steps
-        let steps = [0.2, 0.4, 0.6, 0.8]
-        for progress in steps {
-            loadingProgress = progress
-            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-        }
-    }
-    
-    private func findPCKFile() throws -> PCKResult {
-        guard let bundlePath = Bundle.main.resourcePath else {
-            throw PCKError.bundleNotFound
-        }
-        
-        let fileManager = FileManager.default
-        
-        // Try to find existing folder with PCK file
-        for folder in possibleFolders {
-            let folderPath = "\(bundlePath)/\(folder)"
-            let pckPath = "\(folderPath)/\(pckFileName)"
-            
-            if fileManager.fileExists(atPath: folderPath) {
-                if fileManager.fileExists(atPath: pckPath) {
-                    return PCKResult(found: true, path: pckPath, folder: folder)
-                } else {
-                    return PCKResult(found: false, path: pckPath, folder: folder,
-                                   error: "Folder '\(folder)' exists but '\(pckFileName)' not found")
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(atPath: resourcePath)
+                print("📋 Bundle resource contents (\(contents.count) items):")
+                
+                for item in contents.sorted() {
+                    let itemPath = "\(resourcePath)/\(item)"
+                    var isDirectory: ObjCBool = false
+                    FileManager.default.fileExists(atPath: itemPath, isDirectory: &isDirectory)
+                    
+                    let type = isDirectory.boolValue ? "📁" : "📄"
+                    let fileExtension = (item as NSString).pathExtension
+                    let highlight = fileExtension == "pck" ? " ⭐ PCK FILE!" : ""
+                    
+                    print("  \(type) \(item)\(highlight)")
+                    searchResults.append("\(type) \(item)\(highlight)")
                 }
+            } catch {
+                print("❌ Error reading bundle contents: \(error)")
+                searchResults.append("❌ Bundle contents error: \(error.localizedDescription)")
             }
         }
-        
-        // No folders found - return default path
-        let defaultPath = "\(bundlePath)/\(possibleFolders[0])/\(pckFileName)"
-        return PCKResult(found: false, path: defaultPath, folder: nil,
-                        error: "No game content folders found. Expected: \(possibleFolders.joined(separator: ", "))")
     }
     
-    private func updateStatus(_ result: PCKResult) {
-        detectedPath = result.path
-        
-        if result.found {
-            status = .found
-            debugInfo.append("✅ PCK file found: \(result.path)")
-            if let folder = result.folder {
-                debugInfo.append("📁 Location: \(folder)/")
-            }
+    func updateBundleInfo() {
+        let bundle = Bundle.main
+        bundleInfo = """
+        Bundle: \(bundle.bundleIdentifier ?? "Unknown")
+        Path: \(bundle.bundlePath)
+        Resource Path: \(bundle.resourcePath ?? "None")
+        PCK Detected: \(detectedPath != nil ? "✅" : "❌")
+        """
+    }
+    
+    // Force re-detection method for UI
+    func forceRedetection() {
+        print("🔄 PCKManager: Force re-detection requested...")
+        detectedPath = nil
+        searchResults.removeAll()
+        detectPCKFiles()
+        updateBundleInfo()
+    }
+    
+    // Get human-readable status for UI
+    var detectionStatus: String {
+        if let path = detectedPath {
+            let fileName = (path as NSString).lastPathComponent
+            return "✅ Found: \(fileName)"
         } else {
-            status = .notFound
-            if let error = result.error {
-                errorMessage = error
-                debugInfo.append("❌ \(error)")
-            }
+            return "❌ No PCK Found"
         }
     }
     
-    private func handleError(_ error: Error) {
-        if let pckError = error as? PCKError {
-            errorMessage = pckError.localizedDescription
-        } else {
-            errorMessage = "Unexpected error: \(error.localizedDescription)"
-        }
-        status = .error
-        debugInfo.append("❌ Error: \(errorMessage)")
-    }
-    
-    private func getBundleDebugInfo() -> [String] {
-        guard let bundlePath = Bundle.main.resourcePath else {
-            return ["❌ Cannot access bundle path"]
+    // Get detailed search results for UI
+    var searchSummary: String {
+        if searchResults.isEmpty {
+            return "No search performed yet"
         }
         
-        var info: [String] = []
-        let fileManager = FileManager.default
+        let successCount = searchResults.filter { $0.contains("✅") }.count
+        let failureCount = searchResults.filter { $0.contains("❌") }.count
         
-        info.append("📦 Bundle: \(bundlePath)")
-        info.append("🎮 SwiftGodotKit Integration: ✅")
-        
-        do {
-            let contents = try fileManager.contentsOfDirectory(atPath: bundlePath)
-            info.append("📁 Root contents: \(contents.count) items")
-            
-            // Check each possible folder
-            for folder in possibleFolders {
-                let folderPath = "\(bundlePath)/\(folder)"
-                if fileManager.fileExists(atPath: folderPath) {
-                    do {
-                        let folderContents = try fileManager.contentsOfDirectory(atPath: folderPath)
-                        info.append("✅ \(folder)/: \(folderContents)")
-                        
-                        // Check for PCK file specifically
-                        let pckPath = "\(folderPath)/\(pckFileName)"
-                        if fileManager.fileExists(atPath: pckPath) {
-                            let attributes = try fileManager.attributesOfItem(atPath: pckPath)
-                            let size = attributes[.size] as? Int64 ?? 0
-                            info.append("   🎮 \(pckFileName): \(formatFileSize(size))")
-                        }
-                    } catch {
-                        info.append("❌ \(folder)/: Error reading contents")
-                    }
-                } else {
-                    info.append("❌ \(folder)/: Not found")
-                }
-            }
-        } catch {
-            info.append("❌ Error reading bundle contents: \(error)")
-        }
-        
-        return info
-    }
-    
-    private func formatFileSize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
-    }
-}
-
-// MARK: - Supporting Types
-
-struct PCKResult {
-    let found: Bool
-    let path: String
-    let folder: String?
-    let error: String?
-    
-    init(found: Bool, path: String, folder: String?, error: String? = nil) {
-        self.found = found
-        self.path = path
-        self.folder = folder
-        self.error = error
-    }
-}
-
-enum PCKError: LocalizedError {
-    case bundleNotFound
-    case fileNotFound(String)
-    case invalidPath(String)
-    case loadFailed(String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .bundleNotFound:
-            return "Could not access app bundle"
-        case .fileNotFound(let path):
-            return "PCK file not found at: \(path)"
-        case .invalidPath(let path):
-            return "Invalid path: \(path)"
-        case .loadFailed(let reason):
-            return "PCK loading failed: \(reason)"
-        }
+        return "Search completed: \(successCount) successes, \(failureCount) failures"
     }
 }
