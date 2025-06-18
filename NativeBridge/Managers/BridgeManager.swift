@@ -11,6 +11,7 @@ import Foundation
 class BridgeManager: ObservableObject {
     // MARK: - Published Properties
     @Published var isEngineConnected: Bool = false
+    @Published var isPCKLoaded: Bool = false // ✅ NEW: PCK loading status
     @Published var status: String = "🔌 Disconnected"
     @Published var lastActivity: String = "Waiting for connection..."
     @Published var connectionTime: Date?
@@ -54,6 +55,9 @@ class BridgeManager: ObservableObject {
         status = "🔄 Connecting..."
         lastActivity = "Initializing GodotBridge..."
         
+        // Reset PCK status when connecting
+        resetPCKStatus()
+        
         // Initialize the engine using the correct method
         godotEngineManager.connectEngine()
         
@@ -84,11 +88,13 @@ class BridgeManager: ObservableObject {
         godotEngineManager.disconnectEngine()
         
         isEngineConnected = false
+        isPCKLoaded = false // ✅ Reset PCK status on disconnect
         connectionTime = nil
         status = "🔌 Disconnected"
         lastActivity = "Engine disconnected"
         
         addDebugMessage("🔌 Engine disconnected")
+        addDebugMessage("🔄 PCK status reset")
         updateBridgeMetrics()
     }
     
@@ -98,25 +104,50 @@ class BridgeManager: ObservableObject {
         guard isEngineConnected else {
             status = "❌ Engine not connected"
             lastActivity = "Connect engine first"
+            addDebugMessage("❌ Cannot load PCK: Engine not connected")
             return
         }
         
         status = "🔄 Loading PCK Bundle..."
         lastActivity = "Searching for PCK files..."
+        addDebugMessage("🔄 Starting PCK bundle loading...")
         
-        // Use the correct method name
+        // Force re-detection to ensure we have the latest state
+        pckManager.forceRedetection()
+        
+        // Check if PCK was detected
+        guard let pckPath = pckManager.detectedPath else {
+            status = "❌ PCK Loading Failed"
+            lastActivity = "No PCK file found"
+            isPCKLoaded = false
+            addDebugMessage("❌ No PCK file found in bundle")
+            addDebugMessage("📂 Search summary: \(pckManager.searchSummary)")
+            return
+        }
+        
+        addDebugMessage("📦 Found PCK at: \(pckPath)")
+        addDebugMessage("📊 Detection status: \(pckManager.detectionStatus)")
+        lastActivity = "Loading PCK file..."
+        
+        // Load via GodotEngineManager
         godotEngineManager.loadPCK()
         
-        // Update status based on PCKManager detection
+        // Check if loading succeeded by verifying the PCK path is still valid
         if pckManager.detectedPath != nil {
+            isPCKLoaded = true
             status = "✅ PCK Bundle Loaded"
             lastActivity = "PCK loaded successfully"
-            addDebugMessage("📦 PCK bundle loaded successfully")
-            addDebugMessage("📁 PCK path: \(pckManager.detectedPath ?? "Unknown")")
+            
+            addDebugMessage("✅ PCK package loaded successfully")
+            addDebugMessage("📁 PCK path: \(pckPath)")
+            
+            // Update metrics
+            bridgeMetrics.loadedFiles += 1
         } else {
+            isPCKLoaded = false
             status = "❌ PCK Loading Failed"
             lastActivity = "Failed to load PCK bundle"
-            addDebugMessage("❌ PCK loading failed - no PCK file found")
+            addDebugMessage("❌ PCK loading failed - verification failed")
         }
         
         updateBridgeMetrics()
@@ -126,17 +157,20 @@ class BridgeManager: ObservableObject {
         guard isEngineConnected else {
             status = "❌ Engine not connected"
             lastActivity = "Connect engine first"
+            addDebugMessage("❌ Cannot inspect: Engine not connected")
             return
         }
         
-        guard pckManager.detectedPath != nil else {
+        guard isPCKLoaded else {
             status = "❌ PCK not loaded"
             lastActivity = "Load PCK bundle first"
+            addDebugMessage("❌ Cannot inspect: PCK not loaded")
             return
         }
         
         status = "🔍 Inspecting Project Structure..."
         lastActivity = "Analyzing project files..."
+        addDebugMessage("🔍 Starting project structure analysis...")
         
         // Use the correct method name
         godotEngineManager.analyzeProjectStructure()
@@ -150,39 +184,52 @@ class BridgeManager: ObservableObject {
         updateBridgeMetrics()
     }
     
+    
+    // ✅ NEW: PCK Status Reset Method
+    func resetPCKStatus() {
+        isPCKLoaded = false
+        addDebugMessage("🔄 PCK status reset")
+    }
+    
     // MARK: - Testing Methods
     
     func sendTestMessage() {
         guard isEngineConnected else {
             status = "❌ Engine not connected"
+            addDebugMessage("❌ Cannot test: Engine not connected")
             return
         }
         
         status = "🧪 Testing Communication..."
         lastActivity = "Sending test message..."
+        addDebugMessage("🧪 Sending test message to bridge...")
         
         godotEngineManager.sendTestMessage()
         
         status = "✅ Test Complete"
         lastActivity = "Communication test successful"
         
-        addDebugMessage("🧪 Test message sent successfully")
+        addDebugMessage("✅ Test message sent successfully")
+        addDebugMessage("🔗 Bridge communication verified")
         updateBridgeMetrics()
     }
     
     func testProjectAccess() {
         guard isEngineConnected else {
             status = "❌ Engine not connected"
+            addDebugMessage("❌ Cannot test access: Engine not connected")
             return
         }
         
-        guard pckManager.detectedPath != nil else {
+        guard isPCKLoaded else {
             status = "❌ PCK not loaded"
+            addDebugMessage("❌ Cannot test access: PCK not loaded")
             return
         }
         
         status = "🧪 Testing Project Access..."
         lastActivity = "Validating file access..."
+        addDebugMessage("🧪 Testing project file access...")
         
         // Use bridge communication test as project access test
         godotEngineManager.sendTestMessage()
@@ -190,7 +237,8 @@ class BridgeManager: ObservableObject {
         status = "✅ Access Test Complete"
         lastActivity = "Project access validated"
         
-        addDebugMessage("🧪 Project access test completed")
+        addDebugMessage("✅ Project access test completed")
+        addDebugMessage("📁 File access validated")
         updateBridgeMetrics()
     }
     
@@ -250,7 +298,7 @@ class BridgeManager: ObservableObject {
         
         // Update engine status
         bridgeMetrics.engineStatus = isEngineConnected ? "Connected" : "Disconnected"
-        bridgeMetrics.pckStatus = pckManager.detectedPath != nil ? "Loaded" : "Not Loaded"
+        bridgeMetrics.pckStatus = isPCKLoaded ? "Loaded" : "Not Loaded" // ✅ Updated to use isPCKLoaded
     }
     
     // MARK: - Debug Support
@@ -296,7 +344,10 @@ class BridgeManager: ObservableObject {
         // PCK information
         info.append("📦 PCK Information:")
         info.append("   Status: \(getPCKStatusDescription())")
+        info.append("   Loaded: \(isPCKLoaded ? "✅" : "❌")") // ✅ Updated to use isPCKLoaded
         info.append("   Detected: \(pckManager.detectedPath != nil ? "✅" : "❌")")
+        info.append("   Detection Status: \(pckManager.detectionStatus)")
+        info.append("   Search Summary: \(pckManager.searchSummary)")
         if let detectedPath = pckManager.detectedPath {
             let fileName = (detectedPath as NSString).lastPathComponent
             info.append("   File: \(fileName)")
@@ -330,8 +381,10 @@ class BridgeManager: ObservableObject {
     }
     
     private func getPCKStatusDescription() -> String {
-        if pckManager.detectedPath != nil {
-            return "Detected"
+        if isPCKLoaded {
+            return "Loaded & Ready" // ✅ Updated description
+        } else if pckManager.detectedPath != nil {
+            return "Detected but not loaded"
         } else {
             return "Not Found"
         }

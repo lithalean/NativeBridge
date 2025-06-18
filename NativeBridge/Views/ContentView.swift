@@ -1,3 +1,10 @@
+//
+//  ContentView.swift
+//  NativeBridge
+//
+//  Created by Tyler Allen on 6/17/25.
+//
+
 import SwiftUI
 
 struct ContentView: View {
@@ -34,7 +41,7 @@ struct ContentView: View {
                             Image(systemName: showingSidebar ? "xmark.circle.fill" : "sidebar.left")
                                 .font(.title2.weight(.medium))
                         }
-                        .buttonStyle(GlassCircularButton())
+                        .circularGlassButton(color: GlassColors.accent, size: 50)
                         .padding(.leading, 20)
                         .padding(.top, 60)
                         
@@ -54,6 +61,7 @@ struct ContentView: View {
             LazyVStack(spacing: 24) {
                 GlassSpacer(height: 80)
                 
+                // Simple title section (progress moved to sidebar)
                 titleSection
                 bridgeStatusSection
                 pckManagementSection
@@ -67,12 +75,45 @@ struct ContentView: View {
     }
     
     private var titleSection: some View {
-        PhaseProgressCard(
-            title: "NativeBridge",
-            subtitle: "Phase 1: Foundation + PCK Loading",
-            progress: 0.75,
-            currentPhase: "Phase 1"
-        )
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "link.circle.fill")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(GlassColors.accent.gradient)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("NativeBridge")
+                        .font(.title.weight(.bold))
+                        .foregroundStyle(GlassColors.primary)
+                    
+                    Text("Darwin ARM64 Bridge Technology")
+                        .glassSubtitle()
+                }
+                
+                Spacer()
+            }
+            
+            HStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(GlassColors.success.gradient)
+                    .frame(width: 4, height: 32)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Status")
+                        .glassCaption()
+                    Text("Phase 1 Complete")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(GlassColors.success)
+                }
+                
+                Spacer()
+                
+                Text("✅")
+                    .font(.title2)
+            }
+        }
+        .padding(24)
+        .liquidGlassCard()
     }
     
     private var bridgeStatusSection: some View {
@@ -111,11 +152,12 @@ struct ContentView: View {
                     icon: "arrow.left.arrow.right"
                 )
                 
+                // Fixed PCK Package status - should be green when loaded
                 ModernStatusCard(
                     title: "PCK Package",
                     status: ComponentStatus(
-                        isConnected: false,
-                        displayName: "Ready"
+                        isConnected: bridgeManager.isPCKLoaded, // This should update when PCK is loaded
+                        displayName: bridgeManager.isPCKLoaded ? "Loaded" : "Ready"
                     ),
                     icon: "doc.badge.gearshape"
                 )
@@ -134,43 +176,81 @@ struct ContentView: View {
             )
             
             VStack(spacing: 12) {
-                ModernActionCard(
-                    title: "Load PCK Bundle",
-                    subtitle: "Find game.pck in app bundle",
-                    icon: "tray.and.arrow.down",
-                    color: GlassColors.warning,
-                    isEnabled: bridgeManager.isEngineConnected,
-                    action: {
-                        Task {
-                            await bridgeManager.loadPCKBundle()
-                        }
+                Button(action: {
+                    Task {
+                        await bridgeManager.loadPCKBundle()
                     }
-                )
+                }) {
+                    HStack {
+                        Image(systemName: "tray.and.arrow.down")
+                            .font(.title3)
+                            .foregroundStyle(GlassColors.warning)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Load PCK Bundle")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Find game.pck in app bundle")
+                                .glassCaption()
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(GlassColors.secondary)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity)
+                }
+                .actionCardButton(color: GlassColors.warning, isEnabled: bridgeManager.isEngineConnected)
                 
                 HStack(spacing: 12) {
-                    ModernActionCard(
-                        title: "Bundle Debug",
-                        subtitle: "Inspect contents",
-                        icon: "folder.badge.questionmark",
-                        color: GlassColors.purple,
-                        isEnabled: true,
-                        action: {
-                            pckManager.debugBundleContents()
-                        }
-                    )
-                    
-                    ModernActionCard(
-                        title: "Project Structure",
-                        subtitle: "View loaded details",
-                        icon: "list.bullet.rectangle",
-                        color: GlassColors.accent,
-                        isEnabled: true,
-                        action: {
-                            Task {
-                                await bridgeManager.inspectProjectStructure()
+                    Button(action: {
+                        pckManager.debugBundleContents()
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "folder.badge.questionmark")
+                                .font(.title2)
+                                .foregroundStyle(GlassColors.purple)
+                            
+                            VStack(spacing: 2) {
+                                Text("Bundle Debug")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("Inspect contents")
+                                    .font(.caption2)
+                                    .foregroundStyle(GlassColors.secondary)
                             }
                         }
-                    )
+                        .padding(12)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .actionCardButton(color: GlassColors.purple, isEnabled: true)
+                    
+                    Button(action: {
+                        Task {
+                            await bridgeManager.inspectProjectStructure()
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "list.bullet.rectangle")
+                                .font(.title2)
+                                .foregroundStyle(GlassColors.accent)
+                            
+                            VStack(spacing: 2) {
+                                Text("Project Structure")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("View loaded details")
+                                    .font(.caption2)
+                                    .foregroundStyle(GlassColors.secondary)
+                            }
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .actionCardButton(color: GlassColors.accent, isEnabled: true)
                 }
             }
         }
@@ -187,49 +267,93 @@ struct ContentView: View {
             )
             
             GlassGrid(columns: 2) {
-                ModernActionCard(
-                    title: "Connect Engine",
-                    subtitle: "Initialize bridge",
-                    icon: "play.circle",
-                    color: GlassColors.success,
-                    isEnabled: !bridgeManager.isEngineConnected,
-                    action: {
-                        bridgeManager.connectGameEngine()
+                Button(action: {
+                    bridgeManager.connectGameEngine()
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "play.circle")
+                            .font(.title2)
+                            .foregroundStyle(GlassColors.success)
+                        
+                        VStack(spacing: 2) {
+                            Text("Connect Engine")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Initialize bridge")
+                                .font(.caption2)
+                                .foregroundStyle(GlassColors.secondary)
+                        }
                     }
-                )
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                }
+                .actionCardButton(color: GlassColors.success, isEnabled: !bridgeManager.isEngineConnected)
                 
-                ModernActionCard(
-                    title: "Test Bridge",
-                    subtitle: "Verify connection",
-                    icon: "checkmark.circle",
-                    color: GlassColors.accent,
-                    isEnabled: bridgeManager.isEngineConnected,
-                    action: {
-                        bridgeManager.sendTestMessage()
+                Button(action: {
+                    bridgeManager.sendTestMessage()
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle")
+                            .font(.title2)
+                            .foregroundStyle(GlassColors.accent)
+                        
+                        VStack(spacing: 2) {
+                            Text("Test Bridge")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Verify connection")
+                                .font(.caption2)
+                                .foregroundStyle(GlassColors.secondary)
+                        }
                     }
-                )
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                }
+                .actionCardButton(color: GlassColors.accent, isEnabled: bridgeManager.isEngineConnected)
                 
-                ModernActionCard(
-                    title: "Performance",
-                    subtitle: "Monitor metrics",
-                    icon: "chart.line.uptrend.xyaxis",
-                    color: GlassColors.purple,
-                    isEnabled: true,
-                    action: {
-                        bridgeManager.startPerformanceMonitoring()
+                Button(action: {
+                    bridgeManager.startPerformanceMonitoring()
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .font(.title2)
+                            .foregroundStyle(GlassColors.purple)
+                        
+                        VStack(spacing: 2) {
+                            Text("Performance")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Monitor metrics")
+                                .font(.caption2)
+                                .foregroundStyle(GlassColors.secondary)
+                        }
                     }
-                )
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                }
+                .actionCardButton(color: GlassColors.purple, isEnabled: true)
                 
-                ModernActionCard(
-                    title: "Debug Bridge",
-                    subtitle: "Inspect state",
-                    icon: "ant",
-                    color: GlassColors.warning,
-                    isEnabled: bridgeManager.isEngineConnected,
-                    action: {
-                        bridgeManager.testProjectAccess()
+                Button(action: {
+                    bridgeManager.testProjectAccess()
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "ant")
+                            .font(.title2)
+                            .foregroundStyle(GlassColors.warning)
+                        
+                        VStack(spacing: 2) {
+                            Text("Debug Bridge")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Inspect state")
+                                .font(.caption2)
+                                .foregroundStyle(GlassColors.secondary)
+                        }
                     }
-                )
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                }
+                .actionCardButton(color: GlassColors.warning, isEnabled: bridgeManager.isEngineConnected)
             }
         }
         .padding(24)
@@ -289,15 +413,7 @@ struct ContentView: View {
                 Button("Clear") {
                     bridgeManager.clearDebugMessages()
                 }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(GlassColors.accent)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(GlassColors.accent.opacity(0.2), in: Capsule())
-                .overlay(
-                    Capsule()
-                        .stroke(GlassColors.accent.opacity(0.5), lineWidth: 1)
-                )
+                .minimalGlassButton(color: GlassColors.accent)
             }
             
             ScrollView {
@@ -327,15 +443,14 @@ struct ContentView: View {
             LazyVStack(spacing: 20) {
                 GlassSpacer(height: 40)
                 
+                // Development Phase Control Card
                 VStack(spacing: 16) {
                     HStack {
-                        Spacer()
-                        
                         Image(systemName: "hammer.circle.fill")
                             .font(.title)
                             .foregroundStyle(GlassColors.warning.gradient)
                         
-                        VStack(spacing: 2) {
+                        VStack(alignment: .leading, spacing: 2) {
                             Text("Development")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(GlassColors.primary)
@@ -361,8 +476,168 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        Text("75%")
-                            .glassStatusBadge(color: GlassColors.accent)
+                        Text("100%")
+                            .glassStatusBadge(color: GlassColors.success)
+                    }
+                }
+                .padding(20)
+                .pureGlassOverlay()
+                
+                // Development Progress Card (moved from main content)
+                VStack(spacing: 16) {
+                    HStack {
+                        Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(GlassColors.accent.gradient)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Progress")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text("Development Phases")
+                                .glassCaption()
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    VStack(spacing: 12) {
+                        // Phase 1
+                        HStack {
+                            Circle()
+                                .fill(GlassColors.success)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Phase 1: Foundation")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("Bridge + Glass UI")
+                                    .font(.caption)
+                                    .foregroundStyle(GlassColors.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("✅")
+                                .font(.caption)
+                        }
+                        
+                        // Phase 2
+                        HStack {
+                            Circle()
+                                .fill(GlassColors.warning)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Phase 2: Runtime")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("Enhanced Communication")
+                                    .font(.caption)
+                                    .foregroundStyle(GlassColors.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("🔄")
+                                .font(.caption)
+                        }
+                        
+                        // Phase 3
+                        HStack {
+                            Circle()
+                                .fill(GlassColors.secondary)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Phase 3: Advanced")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("Scene Integration")
+                                    .font(.caption)
+                                    .foregroundStyle(GlassColors.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("📋")
+                                .font(.caption)
+                        }
+                        
+                        // Phase 4
+                        HStack {
+                            Circle()
+                                .fill(GlassColors.secondary)
+                                .frame(width: 12, height: 12)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Phase 4: Production")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(GlassColors.primary)
+                                Text("Optimization & Deploy")
+                                    .font(.caption)
+                                    .foregroundStyle(GlassColors.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("🚀")
+                                .font(.caption)
+                        }
+                    }
+                }
+                .padding(20)
+                .pureGlassOverlay()
+                
+                // Bridge Status Summary Card
+                VStack(spacing: 16) {
+                    HStack {
+                        Image(systemName: "link.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(bridgeManager.isEngineConnected ? GlassColors.success.gradient : GlassColors.error.gradient)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Bridge Status")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(GlassColors.primary)
+                            Text(bridgeManager.isEngineConnected ? "Connected" : "Disconnected")
+                                .glassCaption()
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Engine")
+                                .font(.caption)
+                                .foregroundStyle(GlassColors.secondary)
+                            Spacer()
+                            Text(bridgeManager.isEngineConnected ? "✅ Active" : "❌ Inactive")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(bridgeManager.isEngineConnected ? GlassColors.success : GlassColors.error)
+                        }
+                        
+                        HStack {
+                            Text("PCK Package")
+                                .font(.caption)
+                                .foregroundStyle(GlassColors.secondary)
+                            Spacer()
+                            Text(bridgeManager.isPCKLoaded ? "✅ Loaded" : "⏳ Ready")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(bridgeManager.isPCKLoaded ? GlassColors.success : GlassColors.warning)
+                        }
+                        
+                        HStack {
+                            Text("Latency")
+                                .font(.caption)
+                                .foregroundStyle(GlassColors.secondary)
+                            Spacer()
+                            Text(String(format: "%.1f ms", bridgeManager.bridgeMetrics.bridgeLatency))
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(GlassColors.info)
+                        }
                     }
                 }
                 .padding(20)
