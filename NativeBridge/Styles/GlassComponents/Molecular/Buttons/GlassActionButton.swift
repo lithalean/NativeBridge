@@ -5,14 +5,17 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
 import SwiftUI
 
 public struct GlassActionButton: ButtonStyle {
+    
+    // Apple-style: static let default value (avoid internal in param)
+    public static let defaultColor = GlassColors.accent
+
     let color: Color
     let isEnabled: Bool
     
-    public init(color: Color = GlassColors.accent, isEnabled: Bool = true) {
+    public init(color: Color = GlassActionButton.defaultColor, isEnabled: Bool = true) {
         self.color = color
         self.isEnabled = isEnabled
     }
@@ -32,4 +35,12 @@ public struct GlassActionButton: ButtonStyle {
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .animation(.easeInOut(duration: GlassConstants.fastAnimation), value: configuration.isPressed)
     }
+}
+
+#Preview {
+    Button(action: {}) {
+        Label("Action", systemImage: "play.fill")
+    }
+    .buttonStyle(GlassActionButton())
+    .frame(width: 200)
 }

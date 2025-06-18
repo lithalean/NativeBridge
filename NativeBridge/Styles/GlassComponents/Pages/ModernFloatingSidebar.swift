@@ -22,7 +22,7 @@ struct ModernFloatingSidebar: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: GlassConstants.largeSpacing) {
-                GlassSpacer(height: 40)
+                GlassSpacer(.vertical, size: 40)
                 
                 DevelopmentControlPanel(
                     currentPhase: currentPhase,
@@ -31,7 +31,7 @@ struct ModernFloatingSidebar: View {
                 
                 FeaturesListContainer(features: features)
                 
-                GlassSpacer(height: 60)
+                GlassSpacer(.vertical, size: 20)
             }
             .padding(.horizontal, GlassConstants.mediumSpacing)
         }

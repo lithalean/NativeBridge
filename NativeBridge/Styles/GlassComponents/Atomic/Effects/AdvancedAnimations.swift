@@ -107,4 +107,79 @@ public struct GlassShimmerAnimation: ViewModifier {
     }
 }
 
-// Additional animations (Pulse, Rotation, Loading, Success) follow the same pattern...
+// MARK: - Pulse Animation
+
+public struct GlassPulseAnimation: ViewModifier {
+    @State private var pulse = false
+    
+    public func body(content: Content) -> some View {
+        content
+            .scaleEffect(pulse ? 1.05 : 0.95)
+            .animation(
+                .easeInOut(duration: 1.0).repeatForever(autoreverses: true),
+                value: pulse
+            )
+            .onAppear {
+                pulse = true
+            }
+    }
+}
+
+// MARK: - Rotation Animation
+
+public struct GlassRotationAnimation: ViewModifier {
+    @State private var rotate = false
+    
+    public func body(content: Content) -> some View {
+        content
+            .rotationEffect(.degrees(rotate ? 360 : 0))
+            .animation(
+                .linear(duration: 2.0).repeatForever(autoreverses: false),
+                value: rotate
+            )
+            .onAppear {
+                rotate = true
+            }
+    }
+}
+
+// MARK: - Loading Animation
+
+public struct GlassLoadingAnimation: ViewModifier {
+    @State private var loading = false
+    
+    public func body(content: Content) -> some View {
+        content
+            .opacity(loading ? 1.0 : 0.3)
+            .scaleEffect(loading ? 1.0 : 0.8)
+            .animation(
+                .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                value: loading
+            )
+            .onAppear {
+                loading = true
+            }
+    }
+}
+
+// MARK: - Success Animation
+
+public struct GlassSuccessAnimation: ViewModifier {
+    @State private var success = false
+    
+    public func body(content: Content) -> some View {
+        content
+            .scaleEffect(success ? 1.0 : 0.0)
+            .opacity(success ? 1.0 : 0.0)
+            .animation(
+                .spring(response: GlassConstants.springResponse,
+                        dampingFraction: GlassConstants.springDamping),
+                value: success
+            )
+            .onAppear {
+                success = true
+            }
+    }
+}
+
+// Additional animations follow the same pattern...

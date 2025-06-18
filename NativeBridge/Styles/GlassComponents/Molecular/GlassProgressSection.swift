@@ -5,12 +5,6 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
-//
-//  GlassProgressSection.swift
-//  NativeBridge
-//
-
 import SwiftUI
 
 /// Progress bar section with title and phase indicator
@@ -28,30 +22,40 @@ struct GlassProgressSection: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: GlassConstants.mediumSpacing) {
+            
             HStack {
                 Text(title)
-                    .glassHeadline()
+                    .font(.headline)
                 
                 Spacer()
                 
-                Text(currentPhase)
-                    .glassStatusBadge(color: GlassColors.accent)
+                Label(currentPhase, systemImage: "checkmark.seal.fill")
+                    .font(.caption)
+                    .labelStyle(.titleAndIcon)
+                    .padding(.horizontal, GlassConstants.compactPadding)
+                    .padding(.vertical, GlassConstants.compactPadding / 2)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: GlassConstants.mediumRadius))
             }
             
-            HStack(spacing: 12) {
+            HStack(spacing: GlassConstants.smallSpacing) {
                 ForEach(0..<segmentCount, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 2)
                         .frame(height: 4)
-                        .foregroundStyle(Double(index) < progress ? GlassColors.success : GlassColors.primary.opacity(0.3))
+                        .foregroundStyle(Double(index + 1) <= progress ? GlassColors.success : GlassColors.primary.opacity(0.3))
+                        .animation(.spring(response: GlassConstants.springResponse, dampingFraction: GlassConstants.springDamping), value: progress)
                 }
             }
-            .glassSpringAnimation(trigger: progress > 0)
         }
     }
 }
 
 #Preview {
-    GlassProgressSection(title: "Development Progress", currentPhase: "Phase 2", progress: 2.5)
-        .padding()
+    GlassProgressSection(
+        title: "Development Progress",
+        currentPhase: "Phase 2",
+        progress: 2.5
+    )
+    .padding()
 }
+

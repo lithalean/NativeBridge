@@ -24,7 +24,7 @@ struct GlassDebugConsole: View {
             DebugConsoleContent(messages: messages)
         }
         .padding(GlassConstants.cardPadding)
-        .liquidGlassCard()
+        .cardGlass()
     }
 }
 

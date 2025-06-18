@@ -34,7 +34,7 @@ struct ModernStatusCard: View {
             )
         }
         .padding(GlassConstants.itemPadding)
-        .floatingGlassCard()
+        .cardGlass()
     }
 }
 

@@ -5,47 +5,63 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
-//
-//  PhaseProgressCard.swift
-//  NativeBridge
-//
-
 import SwiftUI
 
-/// Phase progress card with full progress section
 struct PhaseProgressCard: View {
     let title: String
     let subtitle: String
+    let features: [String]
     let progress: Double
     let currentPhase: String
     
     var body: some View {
-        VStack(spacing: 16) {
-            GlassContentSection(
-                title: title,
-                subtitle: subtitle,
-                alignment: .center
-            )
-            .padding(.top, 8)
+        VStack(alignment: .leading, spacing: GlassConstants.mediumSpacing) {
             
-            GlassProgressSection(
-                title: "Development Progress",
-                currentPhase: currentPhase,
-                progress: progress
-            )
+            // Title + Subtitle
+            VStack(alignment: .leading, spacing: GlassConstants.smallSpacing) {
+                Text(title)
+                    .font(.title.bold())
+                
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            
+            // Progress bar
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+            
+            // Current phase
+            Text(currentPhase)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            // Feature list
+            HStack {
+                ForEach(features, id: \.self) { feature in
+                    Label(feature, systemImage: "checkmark.seal.fill")
+                        .font(.caption2)
+                        .padding(.horizontal, GlassConstants.compactPadding)
+                        .padding(.vertical, GlassConstants.compactPadding / 2)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: GlassConstants.mediumRadius))
+                }
+            }
         }
         .padding(GlassConstants.cardPadding)
-        .liquidGlassCard()
+        .cardGlass()
     }
 }
 
 #Preview {
     PhaseProgressCard(
-        title: "NativeBridge Development",
-        subtitle: "Cross-platform integration layer",
-        progress: 2.0,
-        currentPhase: "Phase 2"
+        title: "NativeBridge",
+        subtitle: "Darwin ARM64 Bridge Technology",
+        features: [
+            "Darwin ARM64",
+            "Liquid Glass",
+            "Godot Bridge"
+        ],
+        progress: 1.0,
+        currentPhase: "Phase 1 Complete"
     )
-    .padding()
 }

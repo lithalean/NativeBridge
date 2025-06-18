@@ -5,12 +5,6 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
-//
-//  ModernSidebarPhaseRow.swift
-//  NativeBridge
-//
-
 import SwiftUI
 
 /// Sidebar phase row with completion indicator
@@ -18,16 +12,20 @@ struct ModernSidebarPhaseRow: View {
     let feature: SidebarFeature
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: GlassConstants.mediumSpacing) {
+            
             GlassCircularProgress(isComplete: feature.isComplete)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: GlassConstants.smallSpacing) {
                 Text(feature.title)
                     .font(.subheadline.weight(feature.isComplete ? .semibold : .medium))
                     .foregroundStyle(feature.isComplete ? GlassColors.primary : GlassColors.secondary)
                 
                 if !feature.isComplete {
-                    GlassProgressBar(progress: 0.3, color: GlassColors.accent)
+                    ProgressView(value: 0.3)
+                        .progressViewStyle(.linear)
+                        .frame(height: 4)
+                        .animation(.easeInOut(duration: GlassConstants.fastAnimation), value: 0.3)
                 }
             }
             
@@ -47,9 +45,11 @@ struct ModernSidebarPhaseRow: View {
 }
 
 #Preview {
-    VStack {
+    VStack(spacing: GlassConstants.mediumSpacing) {
         ModernSidebarPhaseRow(feature: SidebarFeature(title: "User Authentication", isComplete: true))
         ModernSidebarPhaseRow(feature: SidebarFeature(title: "Data Synchronization", isComplete: false))
     }
     .padding()
+    .background(GlassColors.backgroundGradient)
 }
+

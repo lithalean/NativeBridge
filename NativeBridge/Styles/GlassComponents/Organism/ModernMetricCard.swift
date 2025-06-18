@@ -38,7 +38,7 @@ struct ModernMetricCard: View {
             )
         }
         .padding(GlassConstants.itemPadding)
-        .floatingGlassCard()
+        .cardGlass()
     }
 }
 

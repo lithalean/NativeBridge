@@ -8,15 +8,39 @@
 import SwiftUI
 
 public extension View {
-    func liquidGlassCard(opacity: Double = 0.8, cornerRadius: CGFloat = GlassConstants.largeRadius) -> some View {
-        modifier(LiquidGlassMaterial(opacity: opacity, cornerRadius: cornerRadius))
-    }
+
+    // MARK: - Toolbar Glass
     
-    func floatingGlassCard(cornerRadius: CGFloat = GlassConstants.mediumRadius, shadowRadius: CGFloat = 8) -> some View {
-        modifier(FloatingGlassMaterial(cornerRadius: cornerRadius, shadowRadius: shadowRadius))
+    func toolbarGlass(cornerRadius: CGFloat = GlassConstants.mediumRadius) -> some View {
+        self
+            .background(GlassConstants.toolbarGlassMaterial)
+            .cornerRadius(cornerRadius)
     }
+
+    // MARK: - Card Glass
     
-    func pureGlassOverlay(cornerRadius: CGFloat = GlassConstants.largeRadius) -> some View {
-        modifier(PureGlassMaterial(cornerRadius: cornerRadius))
+    func cardGlass(cornerRadius: CGFloat = GlassConstants.largeRadius) -> some View {
+        self
+            .background(GlassConstants.cardGlassMaterial)
+            .cornerRadius(cornerRadius)
+            .shadow(radius: 10)
+    }
+
+    // MARK: - Floating Glass
+    
+    func floatingGlass(cornerRadius: CGFloat = GlassConstants.mediumRadius, shadowRadius: CGFloat = 12) -> some View {
+        self
+            .background(GlassConstants.toolbarGlassMaterial)
+            .cornerRadius(cornerRadius)
+            .shadow(radius: shadowRadius)
+    }
+
+    // MARK: - Pure Glass Overlay
+    
+    func pureGlassOverlay(opacity: Double = 0.9, cornerRadius: CGFloat = GlassConstants.largeRadius) -> some View {
+        self
+            .background(.ultraThinMaterial)
+            .opacity(opacity)
+            .cornerRadius(cornerRadius)
     }
 }

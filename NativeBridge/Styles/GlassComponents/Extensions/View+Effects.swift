@@ -2,50 +2,49 @@
 //  View+Effects.swift
 //  NativeBridge
 //
-//  Glass Animation View Extensions
-//  Location: Styles/GlassDesignSystem/Extensions/View+Effects.swift
+//  Created by Tyler Allen on 6/18/25.
 //
 
 import SwiftUI
 
+// MARK: - GlassEffects View Extension
+
 public extension View {
-    // MARK: - Core Animations (from LiquidGlassStyles)
+
+    // MARK: Pulse
     
-    func glassSpringAnimation(trigger: Bool) -> some View {
-        modifier(GlassSpringAnimation(trigger: trigger))
+    func glassPulse() -> some View {
+        self.modifier(GlassPulseAnimation())
     }
+    
+    // MARK: Rotation
+    
+    func glassRotate() -> some View {
+        self.modifier(GlassRotationAnimation())
+    }
+    
+    // MARK: Loading
+    
+    func glassLoading() -> some View {
+        self.modifier(GlassLoadingAnimation())
+    }
+    
+    // MARK: Success
+    
+    func glassSuccess() -> some View {
+        self.modifier(GlassSuccessAnimation())
+    }
+    
+    // MARK: Fade
     
     func glassFadeTransition() -> some View {
-        modifier(GlassFadeTransition())
+        self.modifier(GlassFadeTransition())
     }
     
-    // MARK: - Advanced Animations (from Animations.swift)
+    // MARK: Spring
     
-    func glassScaleAnimation(isPressed: Bool, scale: CGFloat = 0.95, duration: Double = 0.1) -> some View {
-        modifier(GlassScaleAnimation(isPressed: isPressed, scale: scale, duration: duration))
-    }
-    
-    func glassSlideAnimation(isVisible: Bool, edge: Edge = .leading, distance: CGFloat = 300) -> some View {
-        modifier(GlassSlideAnimation(isVisible: isVisible, edge: edge, distance: distance))
-    }
-    
-    func glassShimmerAnimation(isActive: Bool, duration: Double = 1.0, color: Color = .white) -> some View {
-        modifier(GlassShimmerAnimation(isActive: isActive, duration: duration, color: color))
-    }
-    
-    func glassPulseAnimation(isActive: Bool, scale: CGFloat = 1.05, opacity: Double = 0.7, duration: Double = 1.0) -> some View {
-        modifier(GlassPulseAnimation(isActive: isActive, scale: scale, opacity: opacity, duration: duration))
-    }
-    
-    func glassRotationAnimation(isActive: Bool, duration: Double = 2.0) -> some View {
-        modifier(GlassRotationAnimation(isActive: isActive, duration: duration))
-    }
-    
-    func glassLoadingAnimation(isLoading: Bool) -> some View {
-        modifier(GlassLoadingAnimation(isLoading: isLoading))
-    }
-    
-    func glassSuccessAnimation(showSuccess: Bool) -> some View {
-        modifier(GlassSuccessAnimation(showSuccess: showSuccess))
+    func glassSpring(trigger: Bool) -> some View {
+        self.modifier(GlassSpringAnimation(trigger: trigger))
     }
 }
+

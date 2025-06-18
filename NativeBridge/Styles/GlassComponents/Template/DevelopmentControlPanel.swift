@@ -5,12 +5,6 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
-//
-//  DevelopmentControlPanel.swift
-//  NativeBridge
-//
-
 import SwiftUI
 
 /// Development control panel template
@@ -20,6 +14,7 @@ struct DevelopmentControlPanel: View {
     
     var body: some View {
         VStack(spacing: GlassConstants.mediumSpacing) {
+            
             HStack {
                 Spacer()
                 
@@ -46,8 +41,12 @@ struct DevelopmentControlPanel: View {
                 
                 Spacer()
                 
-                Text(progress)
-                    .glassStatusBadge(color: GlassColors.accent)
+                Label(progress, systemImage: "checkmark.seal.fill")
+                    .font(.caption)
+                    .labelStyle(.titleAndIcon)
+                    .padding(.horizontal, GlassConstants.compactPadding)
+                    .padding(.vertical, GlassConstants.compactPadding / 2)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: GlassConstants.mediumRadius))
             }
         }
         .padding(GlassConstants.largeSpacing)
@@ -58,4 +57,6 @@ struct DevelopmentControlPanel: View {
 #Preview {
     DevelopmentControlPanel(currentPhase: "Phase 2", progress: "60%")
         .padding()
+        .background(GlassColors.backgroundGradient)
 }
+
