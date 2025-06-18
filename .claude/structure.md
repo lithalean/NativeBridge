@@ -2,7 +2,7 @@
 *Current folder and file organization for AI collaboration*
 
 > **Location**: `/.claude/structure.md` - Live project structure reference  
-> **Last Updated**: June 17, 2025  
+> **Last Updated**: June 18, 2025  
 > **Build Status**: Phase 1 100% Complete ✅ | Modular Glass Operational ✅ | Custom Bridge Stable ✅  
 
 ## 📁 Root Directory Structure
@@ -26,9 +26,15 @@ NativeBridge/                   # Project root
 NativeBridge/NativeBridge/      # Actual current structure
 ├── Assets.xcassets             ✅ App icons, images, colors - Glass-optimized
 ├── NativeBridge.entitlements   ✅ App entitlements and permissions
-├── Styles/                     ✅ MODULAR GLASS DESIGN SYSTEM - COMPLETE
+├── Styles/                     ✅ MODULAR GLASS DESIGN SYSTEM - ATOMIC ARCHITECTURE
 │   ├── LiquidGlassStyles.swift ✅ Core materials, typography, animations, design tokens
-│   └── GlassComponents.swift   ✅ Reusable UI component library
+│   └── GlassComponents/        ✅ ATOMIC DESIGN COMPONENT LIBRARY
+│       ├── Foundation/         ✅ Core data structures and types
+│       ├── Atomic/             ✅ Basic UI building blocks
+│       ├── Molecular/          ✅ Compound components from atoms
+│       ├── Organism/           ✅ Complex feature components
+│       ├── Template/           ✅ Layout and container components
+│       └── Pages/              ✅ Complete page-level components
 ├── Item.swift                  ✅ Core data model (SwiftData)
 ├── NativeBridgeApp.swift       ✅ Main app entry point
 ├── Views/                      ✅ Clean modular glass UI implementation
@@ -49,23 +55,23 @@ NativeBridge/NativeBridge/      # Actual current structure
 ```
 IMPLEMENTATION_STATUS:
 ✅ COMPLETE & OPERATIONAL:
-- Modular WWDC 25 Liquid Glass design system in Styles/ folder
-- Reusable glass component library with consistent styling
-- 50% smaller ContentView (400 lines vs 800+ lines) with modular components
+- Modular WWDC 25 Liquid Glass design system with ATOMIC ARCHITECTURE
+- Atomic Design component library with 6-layer hierarchy (Foundation→Atomic→Molecular→Organism→Template→Pages)
+- 50% smaller ContentView (400 lines vs 800+ lines) with atomic components
 - Design token system (GlassColors, GlassConstants) for unified styling
 - View extensions (.liquidGlassCard(), .glassTitle()) for easy styling
-- Pure glass floating sidebar with modular component architecture
-- Modern no-header design system with reusable components throughout
+- Pure glass floating sidebar with atomic component architecture
+- Modern no-header design system with atomic components throughout
 - Advanced modular glass UI components with perfect glassmorphism
-- Spring animations and smooth glass transitions (60fps) with component reuse
-- Responsive glass layout adapting to all device sizes with modular components
+- Spring animations and smooth glass transitions (60fps) with atomic component reuse
+- Responsive glass layout adapting to all device sizes with atomic components
 - Custom Darwin ARM64 Bridge with manual implementation
 - GodotBridge interface - Direct Swift to libgodot.xcframework calls
 - Real PCK loading via GodotBridge.loadResourcePack()
 - Bridge file system access via GodotBridge.fileExists()
 - Performance monitoring with custom bridge operation tracking in modular glass
 - Core data model with Item.swift (SwiftData integration)
-- Views/ directory with clean ContentView.swift modular glass implementation
+- Views/ directory with clean ContentView.swift atomic glass implementation
 - BridgeManager with modular glass UI integration and real-time monitoring
 - GodotEngineManager with custom bridge integration and real operations
 - PCKManager with app bundle detection and file discovery
@@ -75,23 +81,23 @@ IMPLEMENTATION_STATUS:
 - GameContent/game.pck - TEST PCK FILE PRESENT AND READY ✅
 
 🚀 PHASE 1 COMPLETE:
-- Modular glass architecture with reusable component system
+- Atomic design architecture with clear component hierarchy
 - Custom bridge implementation with manual Swift ↔ Engine communication
 - Real PCK loading and project structure analysis via custom bridge
-- Modular glass interface displaying actual custom bridge data and metrics
+- Atomic glass interface displaying actual custom bridge data and metrics
 - Complete development workflow from initialization to project analysis
-- 50% codebase reduction with improved maintainability
+- 50% codebase reduction with improved maintainability through atomic design
 
 📋 PHASE 2 READY FOR DEVELOPMENT:
-- Bridge/ directory structure ready for Runtime integration with modular glass
-- Modular glass scene containers for .tscn file embedding
-- Enhanced messaging with modular glass UI feedback
-- Advanced modular glass debugging and monitoring tools
+- Bridge/ directory structure ready for Runtime integration with atomic glass
+- Atomic glass scene containers for .tscn file embedding
+- Enhanced messaging with atomic glass UI feedback
+- Advanced atomic glass debugging and monitoring tools
 ```
 
 ## 📂 Detailed Directory Contents
 ```
-Styles/                         ✅ MODULAR GLASS DESIGN SYSTEM - COMPLETE
+Styles/                         ✅ MODULAR GLASS DESIGN SYSTEM - ATOMIC ARCHITECTURE
 ├── LiquidGlassStyles.swift     ✅ CORE GLASS MATERIALS & DESIGN TOKENS
 │   • Core Glass Materials:
 │   ├── LiquidGlassCard         ✅ Primary glass card background
@@ -123,26 +129,35 @@ Styles/                         ✅ MODULAR GLASS DESIGN SYSTEM - COMPLETE
 │       .glassStatusBadge()     ✅ Status styling extensions
 │       .glassSpringAnimation() ✅ Animation extensions
 │
-└── GlassComponents.swift       ✅ REUSABLE UI COMPONENT LIBRARY
-    • Status Components:
-    ├── ModernStatusCard        ✅ Bridge component status display
-    ├── ComponentStatus         ✅ Status data structure
-    • Action Components:
-    ├── ModernActionCard        ✅ Interactive action buttons with glass styling
-    • Metric Components:
-    ├── ModernMetricCard        ✅ Performance metrics display
-    ├── TrendDirection          ✅ Trend indicator with colors
-    • Progress Components:
-    ├── PhaseProgressCard       ✅ Development phase tracking with progress
-    • Header Components:
-    ├── GlassSectionHeader      ✅ Consistent section headers with icons
-    • Sidebar Components:
-    ├── ModernSidebarPhaseRow   ✅ Feature completion rows with progress
-    ├── ModernFloatingSidebar   ✅ Complete floating sidebar with glass
-    ├── SidebarFeature          ✅ Feature data structure
-    • Debug Components:
-    ├── GlassDebugConsole       ✅ Debug output with color coding
-    └── Message color coding    ✅ Smart message color detection
+└── GlassComponents/            ✅ ATOMIC DESIGN COMPONENT LIBRARY - REORGANIZED
+    ├── Foundation/             ✅ Core data structures and types
+    │   ├── ComponentStatus.swift    ✅ Status data structure
+    │   ├── TrendDirection.swift     ✅ Trend indicator with colors
+    │   └── SidebarFeature.swift     ✅ Feature data structure
+    ├── Atomic/                 ✅ Smallest UI building blocks
+    │   ├── GlassStatusIndicator.swift  ✅ Status indicators (connected/error)
+    │   ├── GlassIcon.swift             ✅ Reusable SF Symbol icons
+    │   └── GlassCircularProgress.swift ✅ Circular progress indicators
+    ├── Molecular/              ✅ Compound components from atoms
+    │   ├── GlassCardHeader.swift       ✅ Card headers with icon + title
+    │   ├── GlassContentSection.swift   ✅ Content sections with descriptions
+    │   └── GlassProgressSection.swift  ✅ Progress bars with labels
+    ├── Organism/               ✅ Complex components combining molecules
+    │   ├── ModernStatusCard.swift      ✅ Bridge component status display
+    │   ├── ModernActionCard.swift      ✅ Interactive action buttons
+    │   ├── ModernMetricCard.swift      ✅ Performance metrics display
+    │   ├── PhaseProgressCard.swift     ✅ Development phase tracking
+    │   └── ModernSidebarPhaseRow.swift ✅ Feature completion rows
+    ├── Template/               ✅ Layout components for organisms
+    │   ├── GlassSectionHeader.swift    ✅ Section headers with icons
+    │   ├── DevelopmentControlPanel.swift ✅ Action button grid layout
+    │   ├── FeaturesListContainer.swift ✅ Feature list organization
+    │   ├── DebugConsoleHeader.swift    ✅ Console header with controls
+    │   ├── DebugConsoleContent.swift   ✅ Console message layout
+    │   └── DebugConsoleMessage.swift   ✅ Individual message formatting
+    └── Pages/                  ✅ Complete page-level components
+        ├── ModernFloatingSidebar.swift ✅ Complete floating sidebar
+        └── GlassDebugConsole.swift     ✅ Debug output with color coding
 
 Views/                          ✅ CLEAN MODULAR GLASS UI IMPLEMENTATION
 └── ContentView.swift           ✅ CLEAN 400-LINE IMPLEMENTATION - 50% SIZE REDUCTION
@@ -252,7 +267,7 @@ CORE_APP_FILES (✅ ALL OPERATIONAL WITH MODULAR GLASS + CUSTOM BRIDGE):
 ✅ Item.swift                    # SwiftData model (Foundation + SwiftData imports)
 ✅ ContentView.swift             # CLEAN 400-LINE MODULAR GLASS + REAL BRIDGE DATA
 ✅ LiquidGlassStyles.swift       # CORE GLASS MATERIALS & DESIGN TOKENS
-✅ GlassComponents.swift         # REUSABLE UI COMPONENT LIBRARY
+✅ GlassComponents/ folder       # ATOMIC DESIGN COMPONENT LIBRARY
 ✅ BridgeManager.swift           # CONNECTION + MODULAR GLASS UI + CUSTOM BRIDGE
 ✅ GodotEngineManager.swift      # CUSTOM BRIDGE + PCK INTEGRATION - 100% COMPLETE
 ✅ GodotBridge.swift             # CUSTOM BRIDGE INTERFACE - MANUAL IMPLEMENTATION
@@ -270,24 +285,23 @@ MODULAR_GLASS_ARCHITECTURE:
     • Design Token System: GlassColors, GlassConstants
     • View Extensions: .liquidGlassCard(), .glassTitle(), .glassStatusBadge()
 
-✅ GlassComponents.swift Features:
-    • Status Components: ModernStatusCard, ComponentStatus
-    • Action Components: ModernActionCard for interactive elements
-    • Metric Components: ModernMetricCard, TrendDirection
-    • Progress Components: PhaseProgressCard for development tracking
-    • Header Components: GlassSectionHeader for consistent sections
-    • Sidebar Components: ModernSidebarPhaseRow, ModernFloatingSidebar
-    • Debug Components: GlassDebugConsole with color coding
-    • Supporting Types: All necessary data structures
+✅ GlassComponents/ Atomic Design Architecture:
+    • Foundation Layer: Core data structures (ComponentStatus, TrendDirection, SidebarFeature)
+    • Atomic Layer: Basic building blocks (GlassStatusIndicator, GlassIcon, GlassCircularProgress)
+    • Molecular Layer: Compound components (GlassCardHeader, GlassContentSection, GlassProgressSection)
+    • Organism Layer: Complex components (ModernStatusCard, ModernActionCard, ModernMetricCard, PhaseProgressCard, ModernSidebarPhaseRow)
+    • Template Layer: Layout components (GlassSectionHeader, DevelopmentControlPanel, FeaturesListContainer, DebugConsole templates)
+    • Pages Layer: Complete UI sections (ModernFloatingSidebar, GlassDebugConsole)
+    • Atomic Design Benefits: Clear hierarchy, maximum reusability, easier testing, scalable architecture
 
 ✅ ContentView.swift Clean Implementation:
-    • Uses modular glass components exclusively
+    • Uses atomic design components exclusively
     • 50% smaller than original monolithic version (400 vs 800+ lines)
-    • Beautiful floating cards with real bridge data using components
-    • Pure glass sidebar using modular component architecture
+    • Beautiful floating cards with real bridge data using atomic components
+    • Pure glass sidebar using page-level components
     • Responsive layout with modular glass design tokens
-    • Real-time bridge metrics display with component reuse
-    • Maintainable codebase with clear separation of concerns
+    • Real-time bridge metrics display with atomic component reuse
+    • Maintainable codebase with clear atomic design hierarchy
 
 CUSTOM_BRIDGE_IMPLEMENTATION:
 ✅ GodotBridge.swift Features:
@@ -336,14 +350,14 @@ PACKAGE_INTEGRATION:
 ```
 MODULAR_GLASS_ACHIEVEMENTS (✅ 100% COMPLETE):
 
-✅ MODULAR_ARCHITECTURE:
-    • Complete reusable component system in Styles/ folder
-    • Design token system (GlassColors, GlassConstants) for consistency
-    • Component library with ModernStatusCard, ModernActionCard, ModernMetricCard
-    • View extensions (.liquidGlassCard(), .glassTitle()) for easy styling
+✅ ATOMIC_DESIGN_ARCHITECTURE:
+    • Complete 6-layer atomic design hierarchy
+    • Foundation → Atomic → Molecular → Organism → Template → Pages
+    • Clear component relationships and dependencies
+    • Maximum reusability through atomic principles
+    • Easier testing with isolated component layers
+    • Scalable architecture for Phase 2 expansion
     • 50% codebase reduction with improved maintainability
-    • Performance optimization through component reuse
-    • Extensible architecture ready for Phase 2 expansion
 
 ✅ MANUAL_BRIDGE_IMPLEMENTATION:
     • Complete Swift to libgodot.xcframework interface
@@ -361,22 +375,22 @@ MODULAR_GLASS_ACHIEVEMENTS (✅ 100% COMPLETE):
     • Project structure analysis through bridge directory listing
     • Complete workflow: Detection → Loading → Verification → Analysis
 
-✅ MODULAR_GLASS_UI_WITH_REAL_DATA:
-    • Modular WWDC 25 Liquid Glass interface displaying real bridge metrics
-    • Live custom bridge operation tracking in modular glass performance cards
-    • Real PCK loading status in modular glass UI components
-    • Bridge communication logs in modular glass debug console
+✅ ATOMIC_GLASS_UI_WITH_REAL_DATA:
+    • Atomic WWDC 25 Liquid Glass interface displaying real bridge metrics
+    • Live custom bridge operation tracking in atomic glass performance cards
+    • Real PCK loading status in atomic glass UI components
+    • Bridge communication logs in atomic glass debug console
     • Performance monitoring with actual bridge latency and success rates
-    • Phase 1 completion status reflected in modular glass interface
-    • Component reuse throughout entire application
+    • Phase 1 completion status reflected in atomic glass interface
+    • Component reuse throughout entire application via atomic design
 
 ✅ DEVELOPMENT_WORKFLOW_COMPLETE:
     • Custom bridge initialization: GodotBridge.initialize()
     • Real PCK loading: PCKManager detection → GodotBridge loading
     • File verification: GodotBridge.fileExists() validation
     • Project analysis: Bridge-based structure inspection
-    • Performance monitoring: Live bridge operation metrics in modular glass
-    • Debug console: Real bridge communication logging with modular components
+    • Performance monitoring: Live bridge operation metrics in atomic glass
+    • Debug console: Real bridge communication logging with atomic components
     • Testing suite: Complete custom bridge validation with glass feedback
 ```
 
@@ -384,75 +398,76 @@ MODULAR_GLASS_ACHIEVEMENTS (✅ 100% COMPLETE):
 ```
 TESTING_WORKFLOW_READY:
 
-1. ✅ APP_LAUNCH: Beautiful modular WWDC 25 glass interface with Phase 1 complete status
-2. ✅ BRIDGE_CONNECT: Tap "Connect Engine" → GodotBridge.initialize() with modular glass feedback
+1. ✅ APP_LAUNCH: Beautiful atomic WWDC 25 glass interface with Phase 1 complete status
+2. ✅ BRIDGE_CONNECT: Tap "Connect Engine" → GodotBridge.initialize() with atomic glass feedback
 3. ✅ PCK_LOADING: Tap "Load PCK Bundle" → Detects GameContent/game.pck → GodotBridge.loadResourcePack() with glass status
-4. ✅ STRUCTURE_ANALYSIS: Tap "Inspect Structure" → GodotBridge.fileExists() verification with modular glass display
+4. ✅ STRUCTURE_ANALYSIS: Tap "Inspect Structure" → GodotBridge.fileExists() verification with atomic glass display
 5. ✅ BRIDGE_TESTING: Tap "Send Test Message" → Custom bridge communication test with glass feedback
-6. ✅ REAL_METRICS: View modular glass performance cards → Live bridge operation data in components
-7. ✅ DEBUG_CONSOLE: View modular glass debug console → Real bridge communication logs in component
+6. ✅ REAL_METRICS: View atomic glass performance cards → Live bridge operation data in components
+7. ✅ DEBUG_CONSOLE: View atomic glass debug console → Real bridge communication logs in component
 
 EXPECTED_RESULTS:
 ✅ Engine Status: "Custom Bridge Initialized ✅" (Green) in ModernStatusCard
 ✅ PCK Status: "PCK Loaded via Custom Bridge ✅" (Green) in ModernStatusCard
 ✅ Debug Console: Real project structure from GameContent/game.pck in GlassDebugConsole
 ✅ Performance Metrics: Live bridge operation counts and latency in ModernMetricCard
-✅ Modular Glass Interface: Smooth 60fps with real bridge data display using components
-✅ Testing Suite: All custom bridge operations functional with modular glass feedback
+✅ Atomic Glass Interface: Smooth 60fps with real bridge data display using atomic components
+✅ Testing Suite: All custom bridge operations functional with atomic glass feedback
 
 PHASE_1_VALIDATION_COMPLETE:
-✅ Modular glass architecture operational and beautiful
+✅ Atomic glass architecture operational and beautiful
 ✅ Custom bridge implementation operational
 ✅ Real PCK loading through bridge interface
-✅ Modular glass UI displaying actual bridge data with component reuse
+✅ Atomic glass UI displaying actual bridge data with component reuse
 ✅ Complete development workflow functional with 50% smaller codebase
-✅ Performance monitoring with real metrics in modular glass components
-✅ Ready for Phase 2 enhanced communication with modular foundation
+✅ Performance monitoring with real metrics in atomic glass components
+✅ Ready for Phase 2 enhanced communication with atomic foundation
 ```
 
 ## 🔮 Phase 2 Architecture Planning
 ```
 PHASE_2_ENHANCEMENTS_READY:
 
-📋 RUNTIME_INTEGRATION_WITH_MODULAR_GLASS:
+📋 RUNTIME_INTEGRATION_WITH_ATOMIC_GLASS:
 Bridge/
 ├── Runtime/
-│   ├── RuntimeManager.swift        # EngineRuntime integration via GodotBridge with modular glass
-│   ├── GlassRuntimeStatus.swift    # Runtime status with modular glass feedback
-│   └── RuntimeLifecycle.swift     # Runtime loading through custom bridge with glass UI
+│   ├── RuntimeManager.swift        # EngineRuntime integration via GodotBridge with atomic glass
+│   ├── AtomicRuntimeStatus.swift   # Runtime status with atomic glass feedback
+│   └── RuntimeLifecycle.swift      # Runtime loading through custom bridge with glass UI
 ├── MessagePassing/
-│   ├── GlassMessageSystem.swift   # Enhanced messaging via GodotBridge with modular glass
-│   ├── GlassMethodCaller.swift    # Type-safe calls through custom bridge with glass feedback
-│   └── GlassResultHandler.swift   # Return values with modular glass display
+│   ├── AtomicMessageSystem.swift   # Enhanced messaging via GodotBridge with atomic glass
+│   ├── AtomicMethodCaller.swift    # Type-safe calls through custom bridge with glass feedback
+│   └── AtomicResultHandler.swift   # Return values with atomic glass display
 └── SceneIntegration/
-    ├── GlassSceneContainer.swift  # .tscn files via extended GodotBridge in modular glass
-    ├── GlassSceneManager.swift    # Scene lifecycle with modular glass management
-    └── GlassSceneDebugger.swift   # Scene debugging with custom bridge data in glass components
+    ├── AtomicSceneContainer.swift  # .tscn files via extended GodotBridge in atomic glass
+    ├── AtomicSceneManager.swift    # Scene lifecycle with atomic glass management
+    └── AtomicSceneDebugger.swift   # Scene debugging with custom bridge data in atomic components
 
 📋 EXTENDED_GODOTBRIDGE_INTERFACE:
-• GodotBridge.loadRuntime() - EngineRuntime loading with modular glass feedback
-• GodotBridge.loadScene() - .tscn file loading for modular glass containers
+• GodotBridge.loadRuntime() - EngineRuntime loading with atomic glass feedback
+• GodotBridge.loadScene() - .tscn file loading for atomic glass containers
 • GodotBridge.callMethod() - Type-safe method calls with glass UI feedback
 • GodotBridge.getProperty() / GodotBridge.setProperty() - Node property access with glass display
-• GodotBridge.connectSignal() - Signal handling for callbacks with modular glass indicators
-• GodotBridge.getNodeTree() - Scene hierarchy inspection with modular glass visualization
+• GodotBridge.connectSignal() - Signal handling for callbacks with atomic glass indicators
+• GodotBridge.getNodeTree() - Scene hierarchy inspection with atomic glass visualization
 
-MODULAR_GLASS_ADVANTAGES_FOR_PHASE_2:
-✅ Reusable component system ready for scene management components
+ATOMIC_GLASS_ADVANTAGES_FOR_PHASE_2:
+✅ Atomic design system ready for scene management components
+✅ 6-layer hierarchy ready for complex UI composition
 ✅ Design token system ready for consistent scene container styling
 ✅ Component library foundation ready for advanced debugging components
 ✅ Performance optimization ready for complex scene rendering
 ✅ Manual bridge implementation ready for any extension
 ✅ Direct framework access for advanced operations
-✅ Performance monitoring foundation established with modular glass display
-✅ Modular glass UI integration framework operational
+✅ Performance monitoring foundation established with atomic glass display
+✅ Atomic glass UI integration framework operational
 ✅ Real PCK loading foundation for scene loading with glass feedback
-✅ File system access ready for .tscn verification with modular glass status
+✅ File system access ready for .tscn verification with atomic glass status
 ✅ Complete control over communication patterns with glass visualization
 ```
 
 ---
 *Phase 1 Modular Darwin ARM64 Bridge: ✅ 100% COMPLETE*  
 *GameContent/game.pck: ✅ PRESENT AND READY FOR TESTING*  
-*Modular WWDC 25 Liquid Glass System: ✅ COMPLETE - 50% Smaller with Reusable Components*  
-*Current focus: Phase 2 planning with modular glass foundation → Runtime integration + enhanced communication*
+*Atomic WWDC 25 Liquid Glass System: ✅ COMPLETE - 50% Smaller with Atomic Design Architecture*  
+*Current focus: Phase 2 planning with atomic glass foundation → Runtime integration + enhanced communication*
