@@ -5,7 +5,6 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
 import SwiftUI
 
 public struct LiquidGlassMaterial: ViewModifier {
@@ -19,10 +18,11 @@ public struct LiquidGlassMaterial: ViewModifier {
     
     public func body(content: Content) -> some View {
         content
-            .background(.regularMaterial.opacity(opacity), in: RoundedRectangle(cornerRadius: cornerRadius))
+            .background(.ultraThinMaterial.opacity(opacity), in: RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(.white.opacity(0.1), lineWidth: 1)
+                    .stroke(.white.opacity(0.12), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 8)
     }
 }

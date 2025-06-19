@@ -5,17 +5,11 @@
 //  Created by Tyler Allen on 6/18/25.
 //
 
-
-//
-//  FeaturesListContainer.swift
-//  NativeBridge
-//
-
 import SwiftUI
 
-/// Features list container template
+/// Features list container template — WWDC25 style
 struct FeaturesListContainer: View {
-    let features: [SidebarFeature]
+    let features: [SidebarFeatureModel]
     
     var body: some View {
         VStack(spacing: GlassConstants.mediumSpacing) {
@@ -26,8 +20,8 @@ struct FeaturesListContainer: View {
             )
             
             VStack(spacing: 8) {
-                ForEach(features, id: \.title) { feature in
-                    ModernSidebarPhaseRow(feature: feature)
+                ForEach(features) { feature in
+                    SidebarFeatureView(feature: feature)
                 }
             }
         }
@@ -37,10 +31,6 @@ struct FeaturesListContainer: View {
 }
 
 #Preview {
-    FeaturesListContainer(features: [
-        SidebarFeature(title: "User Authentication", isComplete: true),
-        SidebarFeature(title: "Data Sync", isComplete: false),
-        SidebarFeature(title: "Push Notifications", isComplete: false)
-    ])
-    .padding()
+    FeaturesListContainer(features: SidebarFeatureModel.sampleFeatures)
+        .padding()
 }
