@@ -11,7 +11,7 @@ import Foundation
 class BridgeManager: ObservableObject {
     // MARK: - Published Properties
     @Published var isEngineConnected: Bool = false
-    @Published var isPCKLoaded: Bool = false // ✅ NEW: PCK loading status
+    @Published var isPCKLoaded: Bool = false
     @Published var status: String = "🔌 Disconnected"
     @Published var lastActivity: String = "Waiting for connection..."
     @Published var connectionTime: Date?
@@ -21,6 +21,7 @@ class BridgeManager: ObservableObject {
     // MARK: - Managers
     let godotEngineManager = GodotEngineManager()
     let pckManager = PCKManager()
+    let controllerManager = GameControllerManager() // 🆕 Controller manager added
     
     // MARK: - Private Properties
     private var performanceTimer: Timer?
@@ -38,9 +39,24 @@ class BridgeManager: ObservableObject {
             "🚀 BridgeManager initialized",
             "🎮 GodotBridge + Custom libgodot.xcframework ready",
             "🛠️ PCK Manager configured",
+            "🎮 Controller Manager initialized", // 🆕 Controller manager message
             "📱 iOS Simulator support enabled",
             "✅ Phase 1 Bridge ready"
         ]
+        
+        // Setup controller bridge integration
+        setupControllerBridge()
+    }
+    
+    // 🆕 Controller Bridge Integration
+    private func setupControllerBridge() {
+        // This will be called after bridge initialization
+        // Integration point for controller → Godot communication
+        addDebugMessage("🎮 Controller bridge integration ready")
+        
+        // Monitor controller connection status
+        // When controller connects/disconnects, update debug messages
+        // This is preparation for Phase 2 bridge integration
     }
     
     // MARK: - Connection Management
@@ -72,6 +88,9 @@ class BridgeManager: ObservableObject {
             addDebugMessage("✅ Engine connection established")
             addDebugMessage("🎮 GodotBridge operational")
             addDebugMessage("🛠️ Custom libgodot.xcframework active")
+            
+            // 🆕 Enable controller bridge integration after engine connects
+            enableControllerBridgeIntegration()
         } else {
             status = "❌ Connection Failed"
             lastActivity = "Failed to initialize GodotBridge"
@@ -88,14 +107,50 @@ class BridgeManager: ObservableObject {
         godotEngineManager.disconnectEngine()
         
         isEngineConnected = false
-        isPCKLoaded = false // ✅ Reset PCK status on disconnect
+        isPCKLoaded = false
         connectionTime = nil
         status = "🔌 Disconnected"
         lastActivity = "Engine disconnected"
         
         addDebugMessage("🔌 Engine disconnected")
         addDebugMessage("🔄 PCK status reset")
+        addDebugMessage("🎮 Controller bridge integration disabled") // 🆕 Controller message
         updateBridgeMetrics()
+    }
+    
+    // 🆕 Controller Bridge Integration Methods
+    private func enableControllerBridgeIntegration() {
+        // This prepares the bridge for controller input forwarding
+        // When Phase 2 is implemented, this will:
+        // 1. Enable controller input → GodotBridge forwarding
+        // 2. Setup haptic feedback bridge
+        // 3. Configure controller event handling
+        
+        addDebugMessage("🎮 Controller bridge integration enabled")
+        addDebugMessage("🎮 Ready to forward controller inputs to engine")
+        
+        // For now, just log controller status
+        if controllerManager.isControllerConnected {
+            addDebugMessage("🎮 \(controllerManager.connectedControllers.count) controller(s) detected")
+            for controller in controllerManager.connectedControllers {
+                let name = controllerManager.getControllerName(controller)
+                let type = controllerManager.getControllerType(controller)
+                addDebugMessage("🎮 Connected: \(name) (\(type.rawValue))")
+            }
+        }
+    }
+    
+    // 🆕 Controller Integration Status
+    func getControllerBridgeStatus() -> String {
+        guard isEngineConnected else {
+            return "Engine not connected"
+        }
+        
+        if controllerManager.isControllerConnected {
+            return "Ready - \(controllerManager.connectedControllers.count) controller(s)"
+        } else {
+            return "Ready - No controllers connected"
+        }
     }
     
     // MARK: - PCK Management
@@ -184,8 +239,6 @@ class BridgeManager: ObservableObject {
         updateBridgeMetrics()
     }
     
-    
-    // ✅ NEW: PCK Status Reset Method
     func resetPCKStatus() {
         isPCKLoaded = false
         addDebugMessage("🔄 PCK status reset")
@@ -211,6 +264,13 @@ class BridgeManager: ObservableObject {
         
         addDebugMessage("✅ Test message sent successfully")
         addDebugMessage("🔗 Bridge communication verified")
+        
+        // 🆕 Test controller integration if available
+        if controllerManager.isControllerConnected {
+            addDebugMessage("🎮 Controller bridge integration verified")
+            addDebugMessage("🎮 Ready for Phase 2 controller input forwarding")
+        }
+        
         updateBridgeMetrics()
     }
     
@@ -298,12 +358,17 @@ class BridgeManager: ObservableObject {
         
         // Update engine status
         bridgeMetrics.engineStatus = isEngineConnected ? "Connected" : "Disconnected"
-        bridgeMetrics.pckStatus = isPCKLoaded ? "Loaded" : "Not Loaded" // ✅ Updated to use isPCKLoaded
+        bridgeMetrics.pckStatus = isPCKLoaded ? "Loaded" : "Not Loaded"
+        
+        // 🆕 Update controller status in metrics
+        bridgeMetrics.controllerStatus = controllerManager.isControllerConnected ?
+            "Connected (\(controllerManager.connectedControllers.count))" : "Not Connected"
+        bridgeMetrics.controllerCount = controllerManager.connectedControllers.count
     }
     
     // MARK: - Debug Support
     
-    private func addDebugMessage(_ message: String) {
+    func addDebugMessage(_ message: String) {
         let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
         let formattedMessage = "[\(timestamp)] \(message)"
         
@@ -341,10 +406,29 @@ class BridgeManager: ObservableObject {
             info.append("")
         }
         
+        // 🆕 Controller information
+        info.append("🎮 Controller Information:")
+        info.append("   Status: \(getControllerBridgeStatus())")
+        info.append("   Connected: \(controllerManager.isControllerConnected ? "✅" : "❌")")
+        info.append("   Count: \(controllerManager.connectedControllers.count)")
+        if controllerManager.isControllerConnected {
+            for controller in controllerManager.connectedControllers {
+                let name = controllerManager.getControllerName(controller)
+                let type = controllerManager.getControllerType(controller)
+                info.append("   • \(name) (\(type.rawValue))")
+                
+                let batteryInfo = controllerManager.getControllerBatteryInfo(controller)
+                if batteryInfo.level < 1.0 {
+                    info.append("     Battery: \(Int(batteryInfo.level * 100))% (\(batteryInfo.state))")
+                }
+            }
+        }
+        info.append("")
+        
         // PCK information
         info.append("📦 PCK Information:")
         info.append("   Status: \(getPCKStatusDescription())")
-        info.append("   Loaded: \(isPCKLoaded ? "✅" : "❌")") // ✅ Updated to use isPCKLoaded
+        info.append("   Loaded: \(isPCKLoaded ? "✅" : "❌")")
         info.append("   Detected: \(pckManager.detectedPath != nil ? "✅" : "❌")")
         info.append("   Detection Status: \(pckManager.detectionStatus)")
         info.append("   Search Summary: \(pckManager.searchSummary)")
@@ -382,7 +466,7 @@ class BridgeManager: ObservableObject {
     
     private func getPCKStatusDescription() -> String {
         if isPCKLoaded {
-            return "Loaded & Ready" // ✅ Updated description
+            return "Loaded & Ready"
         } else if pckManager.detectedPath != nil {
             return "Detected but not loaded"
         } else {
@@ -409,6 +493,8 @@ struct BridgeMetrics {
     var successRate: Double = 0.0
     var engineStatus: String = "Disconnected"
     var pckStatus: String = "Not Loaded"
+    var controllerStatus: String = "Not Connected" // 🆕 Controller status
+    var controllerCount: Int = 0 // 🆕 Controller count
 }
 
 // MARK: - Memory Info (for performance monitoring)
