@@ -1,51 +1,51 @@
 # NativeBridge Design System
-*Premium Glass Components - Apple Car Dashboard with Controller Navigation*
+*Premium Glass Components - System Dashboard with Controller Navigation*
 
 > **Last Updated**: June 19, 2025  
 > **Location**: `/.claude/design.md`
-> **Status**: Phase 1 Complete ✅ | Controller Navigation Added ✅ | Apple Car Dashboard Operational ✅  
-> **Architecture**: Sophisticated Apple Car Dashboard + Dual Floating Sidebars + Controller UI Navigation
+> **Status**: Phase 1 Complete ✅ | Controller Navigation Added ✅ | System Dashboard Operational ✅  
+> **Architecture**: Sophisticated System Dashboard + Dual Floating Sidebars + Controller UI Navigation
 
 ## 🎨 Current Implementation
 
-### Core Layout (Apple Car Dashboard Architecture)
+### Core Layout (System Dashboard Architecture)
 ```swift
-// Sophisticated Apple Car Dashboard
-// Background: AppleCarBackground with grid pattern + ambient glow
-// Main Content: AppleCarSystemStatusAndHealth with performance rings
-// Dual Sidebars: LeftMissionControlSidebar (80px icons) + RightDebuggerSidebar (45% width)
-// Controller Navigation: ControllerUIManager with ring selection + haptic feedback
+// Sophisticated System Dashboard
+// Background: DashboardBackground with grid pattern + ambient glow
+// Main Content: SystemStatusView with performance rings
+// Dual Sidebars: ControlSidebar (80px icons) + DebugConsole (45% width)
+// Controller Navigation: ControllerNavigationManager with ring selection + haptic feedback
 // Layout: Floating sidebars with glass materials + professional animations
 ```
 
 ### Design DNA
-- **Apple Car Dashboard Aesthetic**: Professional automotive-grade interface
-- **Dual Floating Sidebars**: Mission Control (left) + Debug Console (right)
+- **System Dashboard Aesthetic**: Professional system monitoring interface
+- **Dual Floating Sidebars**: Control actions (left) + Debug Console (right)
 - **Controller Navigation**: Full Xbox/PlayStation/MFi controller support with UI navigation
-- **Performance Ring Grid**: Circular health indicators with real-time metrics
+- **Metrics Ring Grid**: Circular health indicators with real-time metrics
 - **WWDC25 Standards**: Advanced glassmorphism and spatial computing patterns
 
 ---
 
-## 📐 Apple Car Dashboard Layout System
+## 📐 System Dashboard Layout
 
-### Complex Dashboard Structure
+### Dashboard Structure
 ```swift
-ContentView (Sophisticated Apple Car Design)
-├── AppleCarBackground                # Grid pattern + ambient glow
-│   ├── AppleCarGridPattern          # 40px grid with subtle lines
-│   └── AppleCarAmbientGlow          # Blue/purple gradient orbs
-├── PerformanceMetricsGrid           # Adaptive core + system rings
-│   ├── CorePerformanceRing (x6-8)  # CPU core utilization rings
-│   ├── SystemHealthRing (x7)       # Bridge, Engine, PCK, Controller, Memory, GPU, Latency
+ContentView (Sophisticated System Design)
+├── DashboardBackground               # Grid pattern + ambient glow
+│   ├── GridPattern                  # 40px grid with subtle lines
+│   └── AmbientGlow                  # Blue/purple gradient orbs
+├── MetricsGrid                      # Adaptive core + system rings
+│   ├── ProcessorCoreRing (x6-8)    # CPU core utilization rings
+│   ├── MetricRing (x7)             # Bridge, Engine, PCK, Controller, Memory, GPU, Latency
 │   └── Selection animations         # Controller navigation with pulsing rings
-├── LeftMissionControlSidebar (80px) # Icon-only controls
+├── ControlSidebar (80px)           # Icon-only controls
 │   ├── Engine controls              # Play/Stop buttons
 │   ├── PCK management              # Load/Inspect buttons  
 │   ├── Controller controls         # Status + haptic test
 │   ├── Testing controls            # Communication tests
-│   └── DetailedControllerStatus    # Controller info card
-└── RightDebuggerSidebar (45% width) # Professional debug console
+│   └── ControllerStatusView        # Controller info card
+└── DebugConsole (45% width)        # Professional debug console
     ├── Debug header with stats     # Message count + controller status
     ├── Live scrolling console      # Color-coded debug messages
     └── Debug controls              # Clear + controller debug buttons
@@ -65,11 +65,11 @@ RadialGradient ambient effects  # Blue/purple atmospheric glow
 
 ## 🎮 Controller Navigation System
 
-### ControllerUIManager Architecture
+### ControllerNavigationManager Architecture
 ```swift
 // Sophisticated Controller Navigation
-ControllerUIManager
-├── Ring selection system        # Navigate between 7 system health rings
+ControllerNavigationManager
+├── Ring selection system        # Navigate between 7 metric rings
 ├── Haptic feedback integration  # Different intensities for different actions
 ├── Action mapping              # A=activate, B=cancel, Menu=sidebar, D-pad=navigate
 ├── Debug logging               # All controller interactions logged
@@ -91,7 +91,7 @@ ControllerUIManager
 ### Navigation Mapping
 ```swift
 // Controller → UI Navigation
-D-Pad Left/Right    → Navigate between system rings (selectedButton 0-6)
+D-Pad Left/Right    → Navigate between metric rings (selectedButton 0-6)
 A Button           → Activate selected ring (connect engine, load PCK, test haptics)
 B Button           → Cancel action (with haptic feedback)
 Menu Button        → Toggle sidebars (prepared for implementation)
@@ -101,38 +101,40 @@ Triggers           → Logged but not mapped to UI (available for future use)
 
 ---
 
-## 🧩 Advanced Component Architecture
+## 🧩 Component Architecture
 
-### Active Premium Components (Enhanced)
+### Active Premium Components (Renamed)
 ```swift
 // Core Performance Components
-CorePerformanceRing(coreNumber, usage, frequency)     # CPU core visualization
-SystemHealthRing(title, icon, isActive, progress, color, valueText, isSelected) # System status with selection
+ProcessorCoreRing(coreNumber, usage, frequency)     # CPU core visualization
+MetricRing(title, icon, isActive, progress, color, valueText, isSelected) # System status with selection
 
 // Sidebar Components  
-LeftMissionControlSidebar(bridgeManager, onClose)     # Icon-only mission control
-RightDebuggerSidebar(bridgeManager, onClose)          # Professional debug console
-BigIconButton(icon, color, isEnabled, action)         # Icon-only sidebar buttons
-DetailedControllerStatus(controllerManager)           # Controller info card
+ControlSidebar(bridgeManager, onClose)              # Icon-only control panel
+DebugConsole(bridgeManager, onClose)                # Professional debug console
+PrimaryActionButton(icon, color, isEnabled, action) # Primary sidebar buttons
+ControllerStatusView(controllerManager)             # Controller info display
 
 // Debug Components
-DebuggerLogLine(lineNumber, message, messageType)     # Color-coded debug lines
-ControllerDebugButton(controllerManager)              # Controller diagnostics
+ConsoleLogEntry(lineNumber, message, messageType)   # Color-coded console lines
+ConsoleMessageType                                  # Message categorization enum
 
 // Foundation Components
-AppleCarBackground()                                   # Grid + ambient effects
-GlassIcon(icon, size)                                 # Consistent iconography
-GlassButtons.CircularGlassButton()                    # Floating toggle buttons
+DashboardBackground()                               # Grid + ambient effects
+GridPattern()                                       # 40px grid overlay
+AmbientGlow()                                       # Atmospheric lighting
+GlassIcon(icon, size)                              # Consistent iconography
+GlassButtons.CircularGlassButton()                 # Floating toggle buttons
 ```
 
-### Component Hierarchy Evolution
+### Component Evolution
 ```swift
 // From Simple (Phase 1) → Sophisticated (Current)
 Old: PhaseProgressCard (single hero card)
-New: PerformanceMetricsGrid (adaptive grid with 6-8 core rings + 7 system rings)
+New: MetricsGrid (adaptive grid with 6-8 processor rings + 7 metric rings)
 
 Old: ModernFloatingSidebar (single sidebar)  
-New: Dual sidebar system (mission control + debug console)
+New: Dual sidebar system (control sidebar + debug console)
 
 Old: Basic controller detection
 New: Full controller navigation with UI integration + haptic feedback
@@ -142,23 +144,23 @@ New: Full controller navigation with UI integration + haptic feedback
 
 ## 🎛️ Dual Sidebar System
 
-### LeftMissionControlSidebar (80px Icon-Only)
+### ControlSidebar (80px Icon-Only)
 ```swift
-// Compact Mission Control
+// Compact Control Panel
 - 80px width for icon-only interface
 - Engine controls (play/stop) with status-aware enabling
 - PCK management (load/inspect) with conditional visibility
 - Controller controls (status + haptic test) 
 - Testing controls (communication + access tests)
-- DetailedControllerStatus card for controller info
+- ControllerStatusView card for controller info
 - Professional glass materials with rounded corners
 ```
 
-### RightDebuggerSidebar (45% Width Professional Console)
+### DebugConsole (45% Width Professional Console)
 ```swift
 // Professional Debug Console
-- 45% screen width (adaptive with left sidebar)
-- Live scrolling debug console with color-coded messages
+- 45% screen width (adaptive with control sidebar)
+- Live scrolling console with color-coded messages
 - Message type detection (success, error, warning, info, controller, debug)
 - Line numbers with monospaced font for readability
 - Auto-scroll to latest messages with smooth animation
@@ -173,12 +175,12 @@ New: Full controller navigation with UI integration + haptic feedback
 ### Enhanced Manager Integration
 ```swift
 // Complex State Orchestration
-@StateObject bridgeManager = BridgeManager()           # Bridge + engine + PCK state
-@StateObject controllerUIManager = ControllerUIManager # Controller navigation state  
-@StateObject pckManager = PCKManager()                # PCK detection state
+@StateObject bridgeManager = BridgeManager()                      # Bridge + engine + PCK state
+@StateObject navigationManager = ControllerNavigationManager()    # Controller navigation state  
+@StateObject pckManager = PCKManager()                           # PCK detection state
 
 // Real-time data flow:
-- Controller input → ControllerUIManager → Ring selection updates
+- Controller input → ControllerNavigationManager → Ring selection updates
 - Bridge operations → BridgeManager → Ring status updates  
 - Debug messages → BridgeManager → Console auto-scroll
 - Performance metrics → Timer-based updates → Ring progress animation
@@ -199,7 +201,7 @@ Controller feedback: Haptic feedback coordinated with visual feedback
 ## 🎯 Design Benefits Achieved
 
 ### Sophisticated User Experience
-- **Apple Car dashboard aesthetic** with professional automotive-grade design
+- **System dashboard aesthetic** with professional monitoring design
 - **Full controller navigation** with intuitive ring selection + haptic feedback
 - **Dual sidebar workflow** optimizing screen real estate usage
 - **Real-time performance monitoring** with adaptive core detection
@@ -225,7 +227,7 @@ Controller feedback: Haptic feedback coordinated with visual feedback
 ### Ready for Phase 2 Runtime Integration
 ```swift
 // Controller → Godot Bridge Integration
-Controller input → ControllerUIManager → GodotBridge → Engine runtime
+Controller input → ControllerNavigationManager → GodotBridge → Engine runtime
 Haptic feedback ← Engine events ← GodotBridge ← Game state
 
 // Enhanced Debug Capabilities  
@@ -254,11 +256,11 @@ Enhanced depth perception + spatial controller navigation
 ## 📊 Current Architecture Metrics
 
 ### Code Organization
-- **ControllerUIManager**: 200+ lines sophisticated navigation logic
+- **ControllerNavigationManager**: 200+ lines sophisticated navigation logic
 - **Dual Sidebars**: 300+ lines professional UI with glass materials  
-- **Performance Grid**: 150+ lines adaptive ring system with real-time data
-- **Debug Console**: 100+ lines color-coded logging with auto-scroll
-- **Apple Car Background**: 80+ lines grid pattern + ambient effects
+- **MetricsGrid**: 150+ lines adaptive ring system with real-time data
+- **DebugConsole**: 100+ lines color-coded logging with auto-scroll
+- **DashboardBackground**: 80+ lines grid pattern + ambient effects
 
 ### Performance Characteristics
 - **60fps rendering** with smooth ring animations + controller selection
@@ -268,7 +270,7 @@ Enhanced depth perception + spatial controller navigation
 - **Battery monitoring** with controller power management
 
 ### User Experience Quality
-- **Professional automotive aesthetic** matching Apple Car design language
+- **Professional system monitoring** matching Apple design language
 - **Intuitive controller navigation** with immediate haptic feedback
 - **Comprehensive debug visibility** with color-coded message types
 - **Responsive design** adapting to iPhone/iPad screen sizes
@@ -295,7 +297,7 @@ Enhanced depth perception + spatial controller navigation
 ### Week 3: Advanced Debug Integration
 ```swift
 + Engine runtime logging → Debug console integration  
-+ Game state visualization → Additional system rings
++ Game state visualization → Additional metric rings
 + Performance profiling → Enhanced metrics display
 ```
 
@@ -319,10 +321,10 @@ Enhanced depth perception + spatial controller navigation
 ## 🎯 Success Metrics Achieved
 
 ### User Experience Excellence
-- **Apple Car dashboard aesthetic** ✅ Professional automotive-grade design
+- **System dashboard aesthetic** ✅ Professional monitoring interface
 - **Full controller navigation** ✅ Xbox/PlayStation/MFi support with UI integration  
 - **Haptic feedback integration** ✅ Different intensities for different actions
-- **Dual sidebar workflow** ✅ Mission control + debug console optimization
+- **Dual sidebar workflow** ✅ Control panel + debug console optimization
 - **Real-time performance monitoring** ✅ Adaptive ring system with live metrics
 
 ### Technical Architecture Quality
@@ -339,5 +341,26 @@ Enhanced depth perception + spatial controller navigation
 - **Clean architecture patterns** ✅ Separation of concerns + modular design
 - **Extensible foundation** ✅ Ready for Phase 2 runtime integration
 
-*Apple Car Dashboard Architecture: Sophisticated dual sidebars + controller navigation + performance monitoring*  
+---
+
+## 📦 Component Naming Reference
+
+### Old → New Component Names
+- AppleCarDashboard → SystemDashboard
+- AppleCarBackground → DashboardBackground
+- AppleCarGridPattern → GridPattern
+- AppleCarAmbientGlow → AmbientGlow
+- AppleCarSystemStatusAndHealth → SystemStatusView
+- PerformanceMetricsGrid → MetricsGrid
+- CorePerformanceRing → ProcessorCoreRing
+- SystemHealthRing → MetricRing
+- LeftMissionControlSidebar → ControlSidebar
+- RightDebuggerSidebar → DebugConsole
+- BigIconButton → PrimaryActionButton
+- DetailedControllerStatus → ControllerStatusView
+- DebuggerLogLine → ConsoleLogEntry
+- DebugMessageType → ConsoleMessageType
+- ControllerUIManager → ControllerNavigationManager
+
+*System Dashboard Architecture: Sophisticated dual sidebars + controller navigation + performance monitoring*  
 *Next: Phase 2 runtime integration with enhanced spatial computing materials*
