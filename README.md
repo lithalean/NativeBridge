@@ -1,5 +1,5 @@
 # NativeBridge
-*Darwin ARM64 Bridge Technology with Apple Car Dashboard + Controller Navigation*
+*Darwin ARM64 Bridge Technology with SwiftUI Dashboard + Controller Navigation*
 
 ![Platform Support](https://img.shields.io/badge/platform-macOS%20%7C%20iOS%20%7C%20iPadOS-blue)
 ![Swift Version](https://img.shields.io/badge/swift-6.0+-orange)
