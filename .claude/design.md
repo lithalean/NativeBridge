@@ -15,261 +15,260 @@
 
 - ✅ **iPhoneView.swift** → Complete — Phase 1 UI locked
 - ⬜ **iPadView.swift** → In progress
-- ✅ **MacView.swift** → Advanced floating panel system complete with fixed line numbers and enhanced Godot-inspired bottom drawer
+- ✅ **MacView.swift** → Advanced floating panel system complete with modular architecture
 - ⬜ **TVView.swift** → In progress
 
 ---
 
-## macOS SwiftUI Design Architecture (June 20, 2025)
+## macOS Modular Architecture (June 20, 2025)
 
-### Core Layout Philosophy
+### File-by-File Enhancement Breakdown
 
-**Layered Interface System:**
-- **Base Layer**: Background gradient + SystemDashboard (always visible)
-- **Floating Interface Layer**: Dynamic sidebar panels + center workspace system
-- **HUD Layer**: Context-aware bottom drawer (Godot-inspired)
-- **Splash Layer**: Platform-specific initialization overlay
+#### **1. MacView+FloatingControlCenter.swift** (Completely Rewritten)
+**Original**: Basic toggle controls with minimal styling
+**Enhanced**:
+- Added gradient header with `LinearGradient` and pulse animation on icon
+- Implemented `QuickActionCard` component with:
+  - Icon, title, and subtitle for better context
+  - Active state indication with color opacity
+  - Hover effects (0.02 → 0.05 opacity transition)
+  - Scale effect on press (0.95) with sensory haptic feedback
+  - Professional rounded rectangle backgrounds
+- Created `EnhancedStatusRow` with:
+  - Multi-state support (active/inactive/warning/error)
+  - Color-coded status indicators with glow effects
+  - Pulse animation for active states
+  - Real-time status details (FPS, connection counts)
+- Added `BuildInfoRow` component for system information display
+- Wrapped entire panel in `LiquidGlassMaterial` with 0.9 opacity
 
-### Advanced Floating Panel System
+#### **2. MacView+EnhancedGodotBottomDrawer.swift** (Complete Overhaul)
+**Original**: Placeholder with basic text
+**Enhanced**:
+- Implemented 4-tab system (FileSystem, Debugger, Search, Inspector)
+- Created `BottomDrawerTab` enum with icons and colors
+- Professional resize handle:
+  - 3-dot visual indicator
+  - Cursor feedback (using platform-safe implementation)
+  - Smooth drag gesture with height constraints (120-400px)
+- Tab switching with animated transitions (0.2s ease)
+- Integrated all four content panels seamlessly
+- Added `GodotDebugger` component with:
+  - Timestamped messages with `DateFormatter`
+  - Color-coded message types (info/warning/error/debug)
+  - Line numbering with monospaced fonts
+  - Clear/Export action buttons
+  - Alternating row backgrounds
 
-**Left Control Center (Enhanced):**
-- **Trigger**: ⌘1 keyboard shortcut + sidebar button
-- **Header**: Gradient background with pulse animation on icon
-- **Content**: 
-  - Quick actions grid with hover effects and visual feedback
-  - Enhanced status display with color-coded indicators and pulse animations
-  - Build information section
-- **Quick Actions**: 
-  - Refined cards with icon, title, and subtitle
-  - Active state indication
-  - Sensory feedback on interaction
-- **Status Monitoring**:
-  - Real-time status with active/inactive/warning/error states
-  - Performance metrics (60 FPS indicator)
-- **Material**: LiquidGlassMaterial with 0.9 opacity
-- **Animation**: Spring response 0.6, damping 0.8
+#### **3. MacView+EnhancedScriptEditors.swift** (Created from Scratch)
+**Original**: Basic TextEditor placeholders
+**Enhanced**:
+- **Swift Editor**: 30 lines of realistic SwiftUI `PlayerController` code
+- **C++ Editor**: 45 lines of complete GDExtension integration
+- Implemented the **fixed line number solution**:
+  - Separate `ScrollView` containers for gutter and content
+  - `GeometryReader` for precise layout control
+  - 50px fixed-width gutter with trailing alignment
+  - `LineNumberView` component for consistent rendering
+  - Synchronized scrolling between line numbers and code
+- Added `ScriptEditorHeader` with:
+  - Language-appropriate icons and colors
+  - Run and Save action buttons
+  - Professional styling with dark backgrounds
 
-**Right Inspector Panel:**
-- **Trigger**: ⌘3 keyboard shortcut + sidebar button  
-- **Content**: SceneInspector component integration
-- **Width**: 280px fixed with smooth transitions
-- **Material**: LiquidGlassMaterial with 0.9 opacity
-- **Positioning**: Right-edge aligned, respects center workspace
+#### **4. Viewport3D.swift** (Transformed)
+**Original**: Simple placeholder text
+**Enhanced**:
+- Professional toolbar with:
+  - `ViewMode` picker (Perspective/Orthogonal/Front/Top)
+  - `GizmoMode` selector (Move/Rotate/Scale) with toggle buttons
+  - Play/Stop controls with state-based coloring
+- Implemented `ViewportGrid` using Canvas:
+  - Minor grid lines (50px spacing, 0.05 opacity)
+  - Major grid lines (250px spacing, 0.1 opacity)
+  - Colored axis lines (X=red, Y=green at 0.3 opacity)
+- Added `Viewport3DObject` components:
+  - Interactive Player, Building, and Light objects
+  - Selection states with blue border highlighting
+  - Positioned using absolute coordinates
+  - Professional dark backgrounds with rounded corners
 
-**Center Workspace System (Enhanced):**
-- **Enhanced Navigation Bar**: 
-  - Refined workspace tabs with active state coloring and iconography
-  - Smoother transitions between workspaces
-- **Dynamic Width Calculation**: Accounts for sidebar states individually
-- **Content Types**: 
-  - Enhanced Swift Script Editor (with fixed, right-aligned line numbers)
-  - Enhanced C++ Script Editor (with fixed, right-aligned line numbers)
-  - Enhanced 3D Viewport (with professional controls and mock objects)
-- **Adaptive Padding**: Changes based on sidebar presence
-- **Height Management**: Accounts for bottom drawer when in 3D mode
+#### **5. MacView+EnhancedWorkspace.swift** (New File)
+**Created**: Complete workspace management system
+- Defined `WorkspaceType` enum with:
+  - Icons (swift, chevron.left.forwardslash.chevron.right, cube)
+  - Colors (orange, blue, purple)
+- Enhanced `EnhancedCenterWorkspaceBar`:
+  - Professional workspace tabs with active state backgrounds
+  - Symbol effects (bounce) on active state changes
+  - Integrated with enhanced `NavButton` components
+- Enhanced `EnhancedCenterWorkspaceContent`:
+  - Dynamic height calculations for bottom drawer
+  - Smooth transitions between workspace types
+  - Proper frame management for different content types
+- Refined `NavButton` with:
+  - Circular background fills for active states
+  - 44x44px touch targets
+  - Integrated with `GlassButtons.CircularGlassButton()`
 
-### Godot-Inspired Bottom Drawer (Enhanced)
+#### **6. MacView+FileSystem.swift** (Major Enhancement)
+**Original**: Basic file list
+**Enhanced**:
+- Professional toolbar with action buttons (folder.badge.plus, doc.badge.plus, arrow.clockwise)
+- Implemented proper file tree structure:
+  - Expandable folders with smooth rotation animations
+  - Proper indentation (16px per level)
+  - Color-coded folder types:
+    - 🟢 assets (Green)
+    - 🔵 resources (Blue)
+    - 🩷 scenes (Pink)
+    - 🟡 scripts (Yellow)
+    - 🔴 shaders (Red)
+- Enhanced `FileSystemItem`:
+  - Selection states with blue background highlighting
+  - Hover cursor feedback (NSCursor.pointingHand)
+  - Proper file type detection (script, scene, config, image)
+  - Expand/collapse functionality with state management
 
-**Context-Aware Activation:**
-- **Only appears when**: 3D Viewport workspace is active
-- **Smart positioning**: Inside center column VStack to avoid sidebar overlap
-- **Width synchronization**: Mirrors center workspace width calculations
+#### **7. MacView+FloatingInspectorPanel.swift** (Complete Redesign)
+**Original**: Basic toggles and sliders
+**Enhanced**:
+- Full `SceneInspector` implementation with:
+  - Gradient header matching Control Center style
+  - Node path display with purple highlighting
+  - Multiple property sections:
+    - Transform3D with Vector3 inputs
+    - Node3D with visibility controls
+    - Script variables display
+    - Signals with connection UI
+- Created specialized components:
+  - `InspectorSection`: Collapsible containers with icons
+  - `InspectorVector3`: X/Y/Z inputs with axis coloring
+  - `InspectorSlider`: Range controls with value display
+  - `InspectorSignal`: Signal connection interface
+- Professional styling with consistent spacing and backgrounds
 
-**Expanded Tab System:**
-- **FileSystem Tab** (Enhanced):
-  - Improved file type detection (script, scene, config, image)
-  - Selection state highlighting
-  - Hover cursor feedback
-  - Better visual hierarchy with refined indentation
-  - Mock file structure for demonstration
+#### **8. MacView+FloatingSettingsModal.swift** (Enhanced)
+**Original**: Basic form with toggles
+**Enhanced**:
+- Multiple organized sections with icons:
+  - General settings
+  - Engine configuration
+  - Controller options
+  - Appearance preferences
+- Added `SettingsSection` component with:
+  - Icon and title header
+  - Glass material background for content
+  - Consistent spacing and styling
+- Implemented various control types:
+  - Toggle switches
+  - Segmented controls for theme selection
+  - Value displays for paths and settings
+- Smooth modal transitions with scale + opacity
 
-- **Debugger Tab** (Maintained):
-  - Timestamped message display with line numbers
-  - Color-coded message types
-  - Monospaced console font
-  - Clear/Export functionality
+#### **9. MacView+SearchPanel.swift** (New Component)
+**Created**: Professional search interface
+- Search bar with magnifying glass icon
+- Scope selector (Project/Current File/Open Files)
+- `SearchResultItem` component with:
+  - File icon and name
+  - Line number display
+  - Code preview with monospaced font
+  - Hover effects (platform-safe implementation)
+- Empty state handling with helpful messages
 
-- **Search Tab** (New):
-  - Project-wide search functionality
-  - Search scope selection (Project/Current File/Open Files)
-  - Mock search results with file preview
-  - Syntax highlighting in results
+#### **10. MacView+Inspector.swift** (New Component)
+**Created**: Godot node inspector
+- `GodotNodeInspector` with full property editing
+- `GodotInspectorSection`: Collapsible property groups
+- Property types:
+  - Text values with dark backgrounds
+  - Toggle switches (scaled to 0.8)
+  - Sliders with value displays
+- Professional styling matching Godot's inspector
 
-- **Inspector Tab** (New):
-  - Node hierarchy display
-  - Transform3D properties
-  - Node3D visibility settings
-  - Script variable inspection
-  - Collapsible property sections
+#### **11. Supporting Files Created**
 
-**Enhanced Resizable Interface:**
-- **Professional drag handle**: 3-dot resize indicator (removes `.cursor` for compatibility)
-- **Height constraints**: 120px minimum, 400px maximum
-- **Smooth resize animations**: Spring-based transitions
+**View+Cursor.swift** (New):
+- Platform-safe cursor implementation
+- macOS-specific NSCursor support
+- iOS/tvOS no-op fallback
 
-### Advanced Workspace Content
+**FloatingPanelManager.swift** (New):
+- Centralized panel state management
+- Toggle and active panel tracking
+- Observable object for SwiftUI integration
 
-**Enhanced Script Editors (✅ Line Numbers Fixed):**
-- **Solution Implemented**:
-  - Separate ScrollView containers with explicit frame alignment
-  - GeometryReader for precise layout control
-  - Fixed-width gutter (50px) with trailing alignment
-  - LineNumberView component with consistent styling
-- **Swift Editor**: 
-  - 30-line PlayerController class with SwiftUI integration
-  - Professional header with run/save buttons
-  - Syntax-appropriate orange theming
-- **C++ Editor**: 
-  - 45-line Godot GDExtension integration
-  - Professional header with run/save buttons
-  - Syntax-appropriate blue theming
-- **Common Features**:
-  - Properly right-aligned line numbers
-  - Alternating row backgrounds for readability
-  - Monospaced font consistency throughout
-  - Synchronized scrolling between gutter and content
-  - Professional IDE appearance matching Xcode/VS Code
+### Technical Improvements Summary
 
-**Enhanced 3D Viewport:**
-- **Professional Toolbar**:
-  - View mode picker with icons (Perspective/Orthogonal/Front/Top)
-  - Gizmo tool selector with visual feedback
-  - Play/Stop controls with state indication
-- **Grid System**:
-  - Canvas-based grid rendering
-  - Major/minor grid lines with appropriate opacity
-  - Professional viewport appearance
-- **Mock 3D Objects**:
-  - Interactive Player and Building objects
-  - Selection highlighting with blue border
-  - Position-based rendering
+**Visual Enhancements**:
+- Consistent use of `LiquidGlassMaterial` throughout
+- Professional color palette with semantic meaning
+- Gradient headers for major panels
+- Hover states and visual feedback everywhere
+- Multi-level status indicators
 
-### Enhanced Material Design System
+**Interaction Improvements**:
+- Haptic feedback on interactions
+- Smooth spring animations (0.5-0.6s response)
+- Professional drag handles and resize controls
+- Keyboard shortcuts properly integrated
+- Context-aware panel management
 
-**Refined LiquidGlass Usage:**
-- **Control Center**: 0.9 opacity with gradient header overlay
-- **Inspector Panel**: 0.9 opacity with xxlRadius corners
-- **Bottom Drawer**: 0.95 opacity with refined tab system
-- **Workspace Content**: 0.95 opacity with appropriate backgrounds
-- **Quick Action Cards**: 0.02-0.05 opacity with hover states
+**Code Quality**:
+- Modular component architecture
+- Reusable sub-components
+- Consistent spacing using GlassConstants
+- Platform-safe implementations
+- Professional SwiftUI patterns
 
-**Enhanced Button Hierarchy:**
-- **NavButton**: Refined with background fill when active
-- **GizmoButton**: Professional toggle appearance
-- **WorkspaceTab**: Active state with color-coded backgrounds
-- **BottomDrawerTabButton**: Improved visual distinction
+### Animation Specifications
 
-### Refined Components
+**Spring Animations**:
+- Panel transitions: `spring(response: 0.6, dampingFraction: 0.8)`
+- Button presses: `easeInOut(duration: 0.1)` 
+- Hover effects: `easeInOut(duration: 0.2)`
+- Tab switches: `easeInOut(duration: 0.2)`
+- Folder expand/collapse: `easeInOut(duration: 0.2)`
 
-**New/Enhanced Components:**
-- `EnhancedCenterWorkspaceBar`: Improved workspace navigation
-- `EnhancedCenterWorkspaceContent`: Better layout management
-- `EnhancedScriptEditorView`: Fixed line number alignment
-- `LineNumberView`: Dedicated line number component
-- `EnhancedGodotBottomDrawer`: Expanded functionality, accepts dynamic width and height bindings
-- `EnhancedGodotFileSystem`: Improved file browser with hover and selection
-- `GodotSearchPanel`: New project-wide search functionality
-- `GodotNodeInspector`: New node properties panel with collapsible sections
-- `EnhancedStatusRow`: Status indicators with active/warning/error states
-- `QuickActionCard`: Refined interaction cards with haptic feedback
-- `ViewportGrid`: Canvas-based grid rendering in 3D viewport
-- `Viewport3DObject`: Interactive 3D scene objects
-
-### Keyboard Integration (Enhanced)
-
-**Improved Keyboard Handling:**
-- Uses `.onKeyPress` modifiers for better macOS integration
-- Proper modifier key detection (⌘)
-- Context-aware ESC key handling to close panels
-- Smooth panel transitions triggered by shortcuts
-
-### Animation Philosophy (Refined)
-
-**Professional Spring Animations:**
-- Consistent timing: 0.5-0.6 response for major UI changes
-- Hover effects: 0.2 duration quick feedback
-- Symbol effects: Bounce and pulse for visual interest
-- State transitions: Smooth opacity and scale changes
-- Resize animations: Natural spring physics-based
-
----
-
-## Technical Achievements
-
-**Line Number Alignment Solution:**
-- Addressed SwiftUI’s text alignment constraints via dual ScrollViews
-- Used GeometryReader and fixed width trailing alignment for gutter
-- Achieved perfect IDE-like right-aligned line numbers with synchronized scroll
-
-**Enhanced Visual Hierarchy:**
-- Semantic color coding for file types and states
-- Consistent GlassConstants spacing and typography across components
-- Multi-level feedback: visual, cursor, haptic for better UX
-
-**Professional Polish:**
-- Hover states with cursor changes and visual highlights
-- Clear active/selection states for tabs and drawer items
-- Empty and loading states handled with placeholders and animations
-
----
-
-## Phase 1 Completion Status
-
-✅ Completed Elements:
-- Advanced floating panel system for macOS with seamless keyboard shortcuts
-- Fixed script editor line number alignment with professional gutter
-- Enhanced Godot-inspired bottom drawer with four interactive tabs
-- Workspace switching with smooth animations and adaptive layout
-- Refined LiquidGlass material usage for native Apple feel
-- Full keyboard integration with escape and command shortcuts
-- High-quality animation and feedback polish
-- Professional IDE-like UI experience comparable to Xcode
-
-✅ Resolved Challenges:
-- Corrected line number alignment issues that plagued prior builds
-- Eliminated ambiguous type errors by consolidating WorkspaceType enum
-- Removed unsupported `.cursor()` modifiers for macOS compatibility
-- Improved file and panel organization to modular SwiftUI files
-
-⬜ Next Phase Tasks:
-- iPadView.swift adaptation of floating panel concepts
-- TVView.swift focus-based navigation system
-- Performance optimizations for large projects and real Godot integration
-- Implementing full file system operations and live syncing
+**Visual Effects**:
+- Symbol effects: `.bounce` on active state changes
+- Pulse animations: `.pulse` on active status indicators
+- Scale effects: 0.95 scale on button press
+- Glow effects: Blur radius 4 on active status dots
 
 ---
 
 ## Design Philosophy Validation
 
 **WWDC25 "Quiet Geometry" ✅:**
-- Floating panels maintain spatial harmony and clarity
-- Refined animations that enhance focus, avoiding distraction
-- Clean hierarchy of controls with visual balance
-- Native macOS aesthetics fused with advanced game dev workflows
+- Every enhancement maintains visual harmony
+- Animations serve functionality, not decoration
+- Clean separation between content layers
+- Professional restraint in effects usage
 
 **"Hierarchy of Components" ✅:**
-- Primary actions (quick action cards) clearly prioritized
-- Secondary controls (toolbars, toggles) well defined
-- Tertiary info (status rows, subtle feedback) unobtrusive but accessible
-- Consistent sizing, spacing, and color coding throughout
+- Primary: Quick action cards dominate Control Center
+- Secondary: Toolbar buttons and navigation controls
+- Tertiary: Status indicators and subtle feedback
+- Clear visual weight distribution
 
 **LiquidGlass Perfection ✅:**
-- Optimal opacity levels tailored per panel type
-- Thoughtful material layering for depth without clutter
-- Glass effects used sparingly and with purpose
-- Professional depth and layering akin to Apple design language
+- Control Center: 0.9 opacity for panel presence
+- Bottom Drawer: 0.95 opacity for content focus
+- Quick Actions: 0.02-0.05 hover for subtle feedback
+- Section backgrounds: 0.5 opacity for hierarchy
 
 **Apple-Designed Godot ✅:**
-- Truly blends Godot’s power with Apple’s UI mastery
-- Native feel on macOS with full SwiftUI integration
-- Polished, modern developer environment ready for production
-- Combines game engine flexibility with professional UX
+- Native macOS controls and patterns
+- Professional development environment
+- Game engine power with consumer polish
+- Indistinguishable from Apple's own tools
 
 ---
 
-The macOS implementation now represents a fully professional floating panel system merging Apple design excellence with Godot’s game development power. The perfect line number alignment and rich visual polish deliver an IDE experience rivaling native Apple tools while empowering advanced game workflows.
+The modular refactoring successfully preserved and enhanced the original beautiful design while improving code organization and reusability. Each file now contains focused, professional components that combine to create a truly Apple-quality Godot development environment.
 
 ---
 
-*Updated June 20, 2025 — by Lithalean*  
-*All changes from Phase 1 UI refactor and fixes included.*
+*Updated June 20, 2025 — Detailed file-by-file enhancement documentation*
